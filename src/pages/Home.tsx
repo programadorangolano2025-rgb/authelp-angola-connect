@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { Button } from "@/components/ui/enhanced-button"
 import { Card, CardContent } from "@/components/ui/card"
 import { 
@@ -7,12 +8,21 @@ import {
   Users, 
   Calendar,
   Bell,
-  Settings
+  Settings,
+  LogOut
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
 
 const Home = () => {
   const navigate = useNavigate()
+  const { user, loading, signOut } = useAuth()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/")
+    }
+  }, [user, loading, navigate])
 
   const menuItems = [
     {
@@ -52,6 +62,18 @@ const Home = () => {
     }
   ]
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-calm flex items-center justify-center">
+        <div className="text-text-gentle">Carregando...</div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-gradient-calm">
       {/* Header */}
@@ -59,7 +81,7 @@ const Home = () => {
         <div className="max-w-md mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-text-gentle">Olá, Maria!</h1>
+              <h1 className="text-lg font-semibold text-text-gentle">Olá, {user.user_metadata?.full_name || "Usuário"}!</h1>
               <p className="text-sm text-muted-foreground">Como você está hoje?</p>
             </div>
             <div className="flex items-center gap-2">
@@ -68,6 +90,9 @@ const Home = () => {
               </Button>
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
+              </Button>
+              <Button variant="ghost" size="icon" onClick={signOut}>
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>

@@ -5,18 +5,88 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
 
 const Login = () => {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   })
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const cleanupAuthState = () => {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key)
+      }
+    })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here would be the login logic
-    navigate("/home")
+    setIsLoading(true)
+    
+    try {
+      cleanupAuthState()
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (error) {
+        toast({
+          title: "Erro no login",
+          description: error.message,
+          variant: "destructive",
+        })
+        return
+      }
+
+      if (data.user) {
+        toast({
+          title: "Login realizado com sucesso!",
+          description: "Redirecionando...",
+        })
+        window.location.href = "/home"
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro inesperado",
+        description: "Tente novamente em alguns minutos.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/home`
+        }
+      })
+      
+      if (error) {
+        toast({
+          title: "Erro no login com Google",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro inesperado",
+        description: "Tente novamente em alguns minutos.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -87,9 +157,9 @@ const Login = () => {
                 type="submit" 
                 variant="large" 
                 className="w-full"
-                disabled={!formData.email || !formData.password}
+                disabled={!formData.email || !formData.password || isLoading}
               >
-                Entrar
+                {isLoading ? "Entrando..." : "Entrar"}
               </Button>
 
               {/* Alternative Options */}
@@ -103,6 +173,7 @@ const Login = () => {
                   size="lg" 
                   className="w-full"
                   type="button"
+                  onClick={handleGoogleLogin}
                 >
                   Entrar com Google
                 </Button>

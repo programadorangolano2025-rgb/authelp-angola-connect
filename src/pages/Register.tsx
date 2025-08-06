@@ -5,9 +5,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, User, Users, GraduationCap } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
 
 const Register = () => {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [userType, setUserType] = useState<string>("")
   const [formData, setFormData] = useState({
     fullName: "",
@@ -15,6 +18,7 @@ const Register = () => {
     password: "",
     confirmPassword: ""
   })
+  const [isLoading, setIsLoading] = useState(false)
 
   const userTypes = [
     { id: "autistic", label: "Sou Autista", icon: User, description: "Pessoa autista" },
@@ -22,10 +26,114 @@ const Register = () => {
     { id: "professional", label: "Sou Profissional", icon: GraduationCap, description: "Terapeuta, médico ou educador" }
   ]
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const cleanupAuthState = () => {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key)
+      }
+    })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here would be the registration logic
-    navigate("/home")
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Erro de validação",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Senha muito fraca",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsLoading(true)
+    
+    try {
+      cleanupAuthState()
+
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/home`,
+          data: {
+            full_name: formData.fullName,
+            user_type: userType
+          }
+        }
+      })
+
+      if (error) {
+        toast({
+          title: "Erro no cadastro",
+          description: error.message,
+          variant: "destructive",
+        })
+        return
+      }
+
+      if (data.user) {
+        toast({
+          title: "Cadastro realizado com sucesso!",
+          description: "Verifique seu email para confirmar a conta.",
+        })
+        window.location.href = "/home"
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro inesperado",
+        description: "Tente novamente em alguns minutos.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGoogleSignup = async () => {
+    if (!userType) {
+      toast({
+        title: "Selecione o tipo de usuário",
+        description: "Por favor, selecione se você é autista, cuidador ou profissional.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/home`,
+          queryParams: {
+            user_type: userType
+          }
+        }
+      })
+      
+      if (error) {
+        toast({
+          title: "Erro no cadastro com Google",
+          description: error.message,
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro inesperado",
+        description: "Tente novamente em alguns minutos.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -135,9 +243,9 @@ const Register = () => {
                 type="submit" 
                 variant="large" 
                 className="w-full mt-6"
-                disabled={!userType || !formData.fullName || !formData.email || !formData.password}
+                disabled={!userType || !formData.fullName || !formData.email || !formData.password || isLoading}
               >
-                Criar Conta
+                {isLoading ? "Criando conta..." : "Criar Conta"}
               </Button>
 
               {/* Alternative Options */}
@@ -151,6 +259,7 @@ const Register = () => {
                   size="lg" 
                   className="w-full"
                   type="button"
+                  onClick={handleGoogleSignup}
                 >
                   Entrar com Google
                 </Button>

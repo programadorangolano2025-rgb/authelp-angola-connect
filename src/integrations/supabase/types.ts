@@ -14,7 +14,319 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          service_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          service_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          service_id?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_id: string
+          comments_count: number | null
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_approved: boolean | null
+          is_moderated: boolean | null
+          likes_count: number | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          comments_count?: number | null
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean | null
+          is_moderated?: boolean | null
+          likes_count?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          comments_count?: number | null
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_approved?: boolean | null
+          is_moderated?: boolean | null
+          likes_count?: number | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          full_name: string
+          id: string
+          location: string | null
+          phone: string | null
+          subscription_plan: Database["public"]["Enums"]["subscription_plan"]
+          updated_at: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+          verified: boolean | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          location?: string | null
+          phone?: string | null
+          subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          updated_at?: string
+          user_id: string
+          user_type: Database["public"]["Enums"]["user_type"]
+          verified?: boolean | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          location?: string | null
+          phone?: string | null
+          subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
+          updated_at?: string
+          user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          category: string
+          content_type: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          downloads_count: number | null
+          file_path: string | null
+          id: string
+          is_premium: boolean | null
+          is_published: boolean | null
+          likes_count: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category: string
+          content_type: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          downloads_count?: number | null
+          file_path?: string | null
+          id?: string
+          is_premium?: boolean | null
+          is_published?: boolean | null
+          likes_count?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category?: string
+          content_type?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          downloads_count?: number | null
+          file_path?: string | null
+          id?: string
+          is_premium?: boolean | null
+          is_published?: boolean | null
+          likes_count?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
+      routines: {
+        Row: {
+          created_at: string
+          days_of_week: number[] | null
+          description: string | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          time_slots: Json | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          days_of_week?: number[] | null
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          time_slots?: Json | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          days_of_week?: number[] | null
+          description?: string | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          time_slots?: Json | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          address: string | null
+          category: string
+          created_at: string
+          description: string | null
+          email: string | null
+          id: string
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          name: string
+          phone: string | null
+          provider_id: string | null
+          rating: number | null
+          total_reviews: number | null
+          updated_at: string
+          verified: boolean | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          category: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          name: string
+          phone?: string | null
+          provider_id?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          verified?: boolean | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          email?: string | null
+          id?: string
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          name?: string
+          phone?: string | null
+          provider_id?: string | null
+          rating?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+          verified?: boolean | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +335,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      subscription_plan: "free" | "premium" | "professional"
+      user_type: "autistic" | "caregiver" | "professional"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +463,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      subscription_plan: ["free", "premium", "professional"],
+      user_type: ["autistic", "caregiver", "professional"],
+    },
   },
 } as const
