@@ -61,7 +61,24 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Autism-friendly design tokens
+				'calm-blue': 'hsl(var(--calm-blue))',
+				'soft-lilac': 'hsl(var(--soft-lilac))',
+				'gentle-purple': 'hsl(var(--gentle-purple))',
+				'warm-white': 'hsl(var(--warm-white))',
+				'text-gentle': 'hsl(var(--text-gentle))'
+			},
+			backgroundImage: {
+				'gradient-calm': 'var(--gradient-calm)',
+				'gradient-subtle': 'var(--gradient-subtle)'
+			},
+			boxShadow: {
+				'soft': 'var(--shadow-soft)',
+				'gentle': 'var(--shadow-gentle)'
+			},
+			transitionTimingFunction: {
+				'calm': 'cubic-bezier(0.4, 0, 0.2, 1)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
