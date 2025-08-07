@@ -1,36 +1,76 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/enhanced-button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Plus, Clock, Check, Volume2 } from "lucide-react"
+import { ArrowLeft, Plus, Clock, Check, Volume2, Loader2, Trash2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "@/hooks/useAuth"
+import { useToast } from "@/hooks/use-toast"
+import { useRoutines } from "@/hooks/useRoutines"
+import { AddRoutineDialog } from "@/components/AddRoutineDialog"
 
 const Routines = () => {
   const navigate = useNavigate()
-  const [completedTasks, setCompletedTasks] = useState<number[]>([])
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const {
+    routines,
+    loading,
+    toggleRoutineCompletion,
+    deleteRoutine,
+    isRoutineCompleted,
+    getCompletedCount
+  } = useRoutines()
+  
+  const [showAddDialog, setShowAddDialog] = useState(false)
 
-  const routines = [
-    { id: 1, task: "Escovar os dentes", time: "07:00", icon: "🦷", completed: false },
-    { id: 2, task: "Tomar café da manhã", time: "07:30", icon: "🥣", completed: false },
-    { id: 3, task: "Ir para a escola", time: "08:00", icon: "🎒", completed: false },
-    { id: 4, task: "Almoçar", time: "12:00", icon: "🍽️", completed: false },
-    { id: 5, task: "Fazer lição de casa", time: "15:00", icon: "📚", completed: false },
-    { id: 6, task: "Brincar/Relaxar", time: "16:30", icon: "🎨", completed: false },
-    { id: 7, task: "Jantar", time: "18:00", icon: "🍲", completed: false },
-    { id: 8, task: "Tomar banho", time: "19:00", icon: "🛁", completed: false },
-    { id: 9, task: "Dormir", time: "21:00", icon: "😴", completed: false }
-  ]
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para acessar suas rotinas.",
+        variant: "destructive"
+      })
+      navigate('/login')
+    }
+  }, [user, loading, navigate, toast])
 
-  const toggleTaskCompletion = (taskId: number) => {
-    setCompletedTasks(prev => 
-      prev.includes(taskId) 
-        ? prev.filter(id => id !== taskId)
-        : [...prev, taskId]
-    )
+  const handleDeleteRoutine = async (routineId: string, event: React.MouseEvent) => {
+    event.stopPropagation()
+    
+    const success = await deleteRoutine(routineId)
+    if (success) {
+      toast({
+        title: "Rotina removida",
+        description: "A rotina foi removida com sucesso."
+      })
+    } else {
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a rotina.",
+        variant: "destructive"
+      })
+    }
   }
 
-  const completedCount = completedTasks.length
+  const getTimeFromSlots = (timeSlots: any) => {
+    if (timeSlots?.default_time) {
+      return timeSlots.default_time
+    }
+    return '07:00'
+  }
+
+  const completedCount = getCompletedCount()
   const totalTasks = routines.length
-  const progressPercentage = (completedCount / totalTasks) * 100
+  const progressPercentage = totalTasks > 0 ? (completedCount / totalTasks) * 100 : 0
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-calm flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-calm-blue" />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-calm">
@@ -81,77 +121,118 @@ const Routines = () => {
         </Card>
 
         {/* Routines List */}
-        <div className="space-y-3">
-          {routines.map((routine) => {
-            const isCompleted = completedTasks.includes(routine.id)
-            
-            return (
-              <Card 
-                key={routine.id}
-                className={`shadow-soft border-0 transition-all duration-300 cursor-pointer ${
-                  isCompleted 
-                    ? "bg-calm-blue/20 border-calm-blue/30" 
-                    : "bg-background/95 hover:shadow-gentle"
-                }`}
-                onClick={() => toggleTaskCompletion(routine.id)}
+        {routines.length === 0 ? (
+          <Card className="shadow-soft border-0 bg-background/95">
+            <CardContent className="p-8 text-center">
+              <div className="text-4xl mb-4">📋</div>
+              <h3 className="font-medium text-text-gentle mb-2">Nenhuma rotina criada</h3>
+              <p className="text-muted-foreground mb-4">
+                Comece criando sua primeira rotina diária
+              </p>
+              <Button 
+                variant="calm" 
+                onClick={() => setShowAddDialog(true)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-4">
-                    {/* Task Icon */}
-                    <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${
-                      isCompleted ? "bg-calm-blue/30" : "bg-muted"
-                    }`}>
-                      {routine.icon}
-                    </div>
-                    
-                    {/* Task Details */}
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className={`font-medium ${
-                          isCompleted ? "text-text-gentle line-through" : "text-text-gentle"
-                        }`}>
-                          {routine.task}
-                        </h3>
-                        <div className="flex items-center space-x-2">
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {routine.time}
-                          </div>
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                            isCompleted 
-                              ? "bg-calm-blue border-calm-blue" 
-                              : "border-muted-foreground"
-                          }`}>
-                            {isCompleted && (
-                              <Check className="h-4 w-4 text-white" />
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Primeira Rotina
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {routines.map((routine) => {
+              const isCompleted = isRoutineCompleted(routine.id)
+              
+              return (
+                <Card 
+                  key={routine.id}
+                  className={`shadow-soft border-0 transition-all duration-300 cursor-pointer group ${
+                    isCompleted 
+                      ? "bg-calm-blue/20 border-calm-blue/30" 
+                      : "bg-background/95 hover:shadow-gentle"
+                  }`}
+                  onClick={() => toggleRoutineCompletion(routine.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-4">
+                      {/* Task Icon */}
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl ${
+                        isCompleted ? "bg-calm-blue/30" : "bg-muted"
+                      }`}>
+                        {routine.icon_name || '🌟'}
+                      </div>
+                      
+                      {/* Task Details */}
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className={`font-medium ${
+                              isCompleted ? "text-text-gentle line-through" : "text-text-gentle"
+                            }`}>
+                              {routine.title}
+                            </h3>
+                            {routine.description && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {routine.description}
+                              </p>
                             )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="flex items-center text-sm text-muted-foreground">
+                              <Clock className="h-4 w-4 mr-1" />
+                              {getTimeFromSlots(routine.time_slots)}
+                            </div>
+                            
+                            {/* Delete Button */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => handleDeleteRoutine(routine.id, e)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                            
+                            {/* Completion Checkbox */}
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                              isCompleted 
+                                ? "bg-calm-blue border-calm-blue" 
+                                : "border-muted-foreground"
+                            }`}>
+                              {isCompleted && (
+                                <Check className="h-4 w-4 text-white" />
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
 
         {/* Add New Routine Button */}
-        <Card className="mt-6 shadow-soft border-0 bg-background/95">
-          <CardContent className="p-4">
-            <Button 
-              variant="gentle" 
-              className="w-full" 
-              size="lg"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Adicionar Nova Rotina
-            </Button>
-          </CardContent>
-        </Card>
+        {routines.length > 0 && (
+          <Card className="mt-6 shadow-soft border-0 bg-background/95">
+            <CardContent className="p-4">
+              <Button 
+                variant="gentle" 
+                className="w-full" 
+                size="lg"
+                onClick={() => setShowAddDialog(true)}
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Adicionar Nova Rotina
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Completion Message */}
-        {completedCount === totalTasks && (
+        {totalTasks > 0 && completedCount === totalTasks && (
           <Card className="mt-4 shadow-soft border-0 bg-calm-blue/10 border-calm-blue/30">
             <CardContent className="p-4 text-center">
               <div className="text-3xl mb-2">🎉</div>
@@ -165,6 +246,12 @@ const Routines = () => {
           </Card>
         )}
       </div>
+
+      {/* Add Routine Dialog */}
+      <AddRoutineDialog 
+        open={showAddDialog} 
+        onOpenChange={setShowAddDialog} 
+      />
     </div>
   )
 }
