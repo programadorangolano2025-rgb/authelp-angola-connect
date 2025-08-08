@@ -138,6 +138,7 @@ export type Database = {
           id: string
           location: string | null
           phone: string | null
+          settings: Json | null
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
           updated_at: string
           user_id: string
@@ -152,6 +153,7 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          settings?: Json | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
           user_id: string
@@ -166,6 +168,7 @@ export type Database = {
           id?: string
           location?: string | null
           phone?: string | null
+          settings?: Json | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
           user_id?: string

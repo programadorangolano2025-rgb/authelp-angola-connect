@@ -75,7 +75,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   
   // Speech recognition
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [recognition, setRecognition] = useState<any>(null);
 
   // Inicializar vozes disponíveis
   useEffect(() => {
@@ -100,8 +100,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Inicializar Speech Recognition
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
       const recognitionInstance = new SpeechRecognition();
       
       recognitionInstance.continuous = false;
@@ -139,7 +139,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       try {
         const { data, error } = await supabase
           .from('profiles')
-          .select('settings')
+          .select('*')
           .eq('user_id', user.id)
           .single();
 
@@ -147,8 +147,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           throw error;
         }
 
-        if (data?.settings) {
-          setSettings({ ...defaultSettings, ...data.settings });
+        if (data && (data as any).settings) {
+          setSettings({ ...defaultSettings, ...(data as any).settings });
         }
       } catch (error) {
         console.error('Error loading settings:', error);
@@ -213,7 +213,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       try {
         const { error } = await supabase
           .from('profiles')
-          .update({ settings: updatedSettings })
+          .update({ settings: updatedSettings } as any)
           .eq('user_id', user.id);
 
         if (error) throw error;
