@@ -10,7 +10,11 @@ const Welcome = () => {
     <div className="min-h-screen bg-gradient-calm flex flex-col">
       {/* Header */}
       <div className="text-center pt-8 pb-6">
-        <h1 className="text-4xl font-bold text-text-gentle mb-2">AutHelp</h1>
+        <img 
+          src="/lovable-uploads/c0b4cc3e-1360-49ba-9d29-9007ef61fea9.png" 
+          alt="AutHelp - Apoio para a jornada autista"
+          className="h-16 mx-auto mb-4"
+        />
         <div className="w-24 h-1 bg-calm-blue mx-auto rounded-full"></div>
       </div>
 
