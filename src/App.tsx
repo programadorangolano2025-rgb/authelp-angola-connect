@@ -14,6 +14,7 @@ import Services from "./pages/Services";
 import Resources from "./pages/Resources";
 import Community from "./pages/Community";
 import Settings from "./pages/Settings";
+import Appointments from "./pages/Appointments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/resources" element={<Resources />} />
               <Route path="/community" element={<Community />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/appointments" element={<Appointments />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
