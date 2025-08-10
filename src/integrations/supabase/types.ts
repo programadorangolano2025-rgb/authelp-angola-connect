@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_logs: {
+        Row: {
+          action: string
+          affected_record_id: string | null
+          affected_table: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          session_id: string | null
+        }
+        Insert: {
+          action: string
+          affected_record_id?: string | null
+          affected_table?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          action?: string
+          affected_record_id?: string | null
+          affected_table?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "admin_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: string | null
+          last_activity: string
+          session_token: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          last_activity?: string
+          session_token: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          last_activity?: string
+          session_token?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           appointment_date: string
@@ -129,6 +200,95 @@ export type Database = {
         }
         Relationships: []
       }
+      content_moderation: {
+        Row: {
+          action: string
+          content_id: string
+          content_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          moderator_session_id: string | null
+          reason: string | null
+        }
+        Insert: {
+          action: string
+          content_id: string
+          content_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          moderator_session_id?: string | null
+          reason?: string | null
+        }
+        Update: {
+          action?: string
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          moderator_session_id?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moderation_moderator_session_id_fkey"
+            columns: ["moderator_session_id"]
+            isOneToOne: false
+            referencedRelation: "admin_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      professional_verifications: {
+        Row: {
+          created_at: string
+          documents_url: string[] | null
+          expiry_date: string | null
+          id: string
+          license_type: string
+          professional_license: string
+          rejection_reason: string | null
+          specializations: string[] | null
+          updated_at: string
+          user_id: string
+          verification_status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          documents_url?: string[] | null
+          expiry_date?: string | null
+          id?: string
+          license_type: string
+          professional_license: string
+          rejection_reason?: string | null
+          specializations?: string[] | null
+          updated_at?: string
+          user_id: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          documents_url?: string[] | null
+          expiry_date?: string | null
+          id?: string
+          license_type?: string
+          professional_license?: string
+          rejection_reason?: string | null
+          specializations?: string[] | null
+          updated_at?: string
+          user_id?: string
+          verification_status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -136,8 +296,10 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          is_professional: boolean | null
           location: string | null
           phone: string | null
+          professional_status: string | null
           settings: Json | null
           subscription_plan: Database["public"]["Enums"]["subscription_plan"]
           updated_at: string
@@ -151,8 +313,10 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          is_professional?: boolean | null
           location?: string | null
           phone?: string | null
+          professional_status?: string | null
           settings?: Json | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
@@ -166,8 +330,10 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          is_professional?: boolean | null
           location?: string | null
           phone?: string | null
+          professional_status?: string | null
           settings?: Json | null
           subscription_plan?: Database["public"]["Enums"]["subscription_plan"]
           updated_at?: string
@@ -327,6 +493,36 @@ export type Database = {
           updated_at?: string
           verified?: boolean | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: Json
+          updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
