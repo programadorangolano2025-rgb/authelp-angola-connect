@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/enhanced-button"
 import { useNavigate } from "react-router-dom"
-import { AuthTest } from "@/components/AuthTest"
+
 import autismInclusionImage from "@/assets/autism-inclusion.jpg"
 
 const Welcome = () => {
@@ -67,9 +67,6 @@ const Welcome = () => {
           </div>
         </div>
       </div>
-      
-      {/* Auth Test Component */}
-      <AuthTest />
     </div>
   )
 }
