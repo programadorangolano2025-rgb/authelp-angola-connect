@@ -25,6 +25,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminProfessionals from "./pages/admin/AdminProfessionals";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminCommunity from "./pages/admin/AdminCommunity";
+import Videos from "./pages/Videos";
+import Stories from "./pages/Stories";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,8 @@ const App = () => (
                 <Route path="/community" element={<Community />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/appointments" element={<Appointments />} />
+                <Route path="/videos" element={<Videos />} />
+                <Route path="/stories" element={<Stories />} />
                 
                 {/* Admin Routes */}
                 <Route path="/admin-login" element={<AdminLogin />} />

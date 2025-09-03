@@ -9,7 +9,9 @@ import {
   Calendar,
   Bell,
   Settings,
-  LogOut
+  LogOut,
+  Play,
+  BookOpen
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth"
@@ -59,6 +61,20 @@ const Home = () => {
       icon: Calendar,
       color: "calm",
       route: "/appointments"
+    },
+    {
+      title: "Vídeos Educativos",
+      description: "Conteúdo em vídeo",
+      icon: Play,
+      color: "gentle",
+      route: "/videos"
+    },
+    {
+      title: "Histórias Sociais",
+      description: "Narrativas de apoio",
+      icon: BookOpen,
+      color: "calm",
+      route: "/stories"
     }
   ]
 

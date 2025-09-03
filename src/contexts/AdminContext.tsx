@@ -5,7 +5,7 @@ interface AdminContextType {
   isAuthenticated: boolean;
   sessionId: string | null;
   loading: boolean;
-  login: (pin: string) => Promise<{ success: boolean; error?: string }>;
+  login: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   logAction: (action: string, details?: any, affectedTable?: string, affectedRecordId?: string) => Promise<void>;
 }
@@ -65,27 +65,9 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const login = async (pin: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (): Promise<{ success: boolean; error?: string }> => {
     try {
-      // Verify PIN
-      const { data: settings, error: settingsError } = await supabase
-        .from('system_settings')
-        .select('setting_value')
-        .eq('setting_key', 'admin_pin')
-        .single();
-
-      if (settingsError || !settings) {
-        return { success: false, error: 'Erro ao verificar credenciais' };
-      }
-
-      const correctPin = typeof settings.setting_value === 'string' 
-        ? JSON.parse(settings.setting_value)
-        : settings.setting_value;
-      if (pin !== correctPin) {
-        return { success: false, error: 'PIN incorreto' };
-      }
-
-      // Create admin session
+      // Create admin session automatically (no PIN required)
       const sessionToken = crypto.randomUUID();
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
