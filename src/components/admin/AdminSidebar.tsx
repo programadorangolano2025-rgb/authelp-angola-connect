@@ -24,37 +24,37 @@ import {
 const menuItems = [
   {
     title: 'Dashboard',
-    url: '/admin',
+    url: '/PFLGMANEGER',
     icon: LayoutDashboard
   },
   {
     title: 'Usuários',
-    url: '/admin/users',
+    url: '/PFLGMANEGER/users',
     icon: Users
   },
   {
     title: 'Profissionais',
-    url: '/admin/professionals',
+    url: '/PFLGMANEGER/professionals',
     icon: UserCheck
   },
   {
     title: 'Serviços',
-    url: '/admin/services',
+    url: '/PFLGMANEGER/services',
     icon: Briefcase
   },
   {
     title: 'Comunidade',
-    url: '/admin/community',
+    url: '/PFLGMANEGER/community',
     icon: MessageSquare
   },
   {
     title: 'Recursos',
-    url: '/admin/resources',
+    url: '/PFLGMANEGER/resources',
     icon: BookOpen
   },
   {
     title: 'Configurações',
-    url: '/admin/settings',
+    url: '/PFLGMANEGER/settings',
     icon: Settings
   }
 ];
@@ -66,8 +66,8 @@ export const AdminSidebar = () => {
   const collapsed = state === 'collapsed';
 
   const isActive = (path: string) => {
-    if (path === '/admin') {
-      return currentPath === '/admin';
+    if (path === '/PFLGMANEGER') {
+      return currentPath === '/PFLGMANEGER';
     }
     return currentPath.startsWith(path);
   };
@@ -93,7 +93,7 @@ export const AdminSidebar = () => {
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url} 
-                      end={item.url === '/admin'}
+                      end={item.url === '/PFLGMANEGER'}
                       className={getNavCls(item.url)}
                     >
                       <item.icon className="h-4 w-4" />

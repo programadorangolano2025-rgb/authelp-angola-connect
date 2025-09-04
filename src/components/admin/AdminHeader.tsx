@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { LogOut, Settings, Activity } from 'lucide-react';
-import { useAdmin } from '@/contexts/AdminContext';
+
 import { useNavigate } from 'react-router-dom';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import {
@@ -15,17 +15,15 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 
 export const AdminHeader = () => {
-  const { logout } = useAdmin();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleLogout = async () => {
-    await logout();
+  const handleLogout = () => {
     toast({
-      title: "Logout realizado",
-      description: "Você foi desconectado do painel administrativo"
+      title: "Saindo do painel",
+      description: "Redirecionando para a página inicial"
     });
-    navigate('/admin-login');
+    navigate('/');
   };
 
   return (
@@ -61,7 +59,7 @@ export const AdminHeader = () => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/admin/settings')}>
+              <DropdownMenuItem onClick={() => navigate('/PFLGMANEGER/settings')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Configurações</span>
               </DropdownMenuItem>

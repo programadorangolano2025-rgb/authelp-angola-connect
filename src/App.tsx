@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SettingsProvider } from "@/contexts/SettingsContext";
-import { AdminProvider } from "@/contexts/AdminContext";
 import Welcome from "./pages/Welcome";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -17,9 +16,7 @@ import Community from "./pages/Community";
 import Settings from "./pages/Settings";
 import Appointments from "./pages/Appointments";
 import NotFound from "./pages/NotFound";
-import AdminLogin from "./pages/AdminLogin";
 import { AdminLayout } from "./components/admin/AdminLayout";
-import { ProtectedAdminRoute } from "./components/admin/ProtectedAdminRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminProfessionals from "./pages/admin/AdminProfessionals";
@@ -34,11 +31,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
       <SettingsProvider>
-        <AdminProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Welcome />} />
                 <Route path="/register" element={<Register />} />
@@ -53,13 +49,17 @@ const App = () => (
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/stories" element={<Stories />} />
                 
-                {/* Admin Routes */}
-                <Route path="/admin-login" element={<AdminLogin />} />
-                <Route path="/admin" element={
-                  <ProtectedAdminRoute>
-                    <AdminLayout />
-                  </ProtectedAdminRoute>
-                }>
+                {/* Admin Routes - Secret URL */}
+                <Route path="/PFLGMANEGER" element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="professionals" element={<AdminProfessionals />} />
+                  <Route path="resources" element={<AdminResources />} />
+                  <Route path="community" element={<AdminCommunity />} />
+                </Route>
+                
+                {/* Legacy admin route redirect */}
+                <Route path="/admin/*" element={<AdminLayout />}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="professionals" element={<AdminProfessionals />} />
@@ -72,7 +72,6 @@ const App = () => (
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
-        </AdminProvider>
       </SettingsProvider>
     </AuthProvider>
   </QueryClientProvider>

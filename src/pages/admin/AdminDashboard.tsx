@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, UserCheck, Briefcase, MessageSquare, BookOpen, Activity } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdmin } from '@/contexts/AdminContext';
+
 
 interface DashboardStats {
   totalUsers: number;
@@ -23,11 +23,9 @@ const AdminDashboard = () => {
     pendingVerifications: 0
   });
   const [loading, setLoading] = useState(true);
-  const { logAction } = useAdmin();
 
   useEffect(() => {
     fetchDashboardStats();
-    logAction('dashboard_viewed');
   }, []);
 
   const fetchDashboardStats = async () => {

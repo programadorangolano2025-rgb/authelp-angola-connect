@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdmin } from '@/contexts/AdminContext';
+
 import { UserCheck, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,12 +26,10 @@ interface ProfessionalVerification {
 const AdminProfessionals = () => {
   const [verifications, setVerifications] = useState<ProfessionalVerification[]>([]);
   const [loading, setLoading] = useState(true);
-  const { logAction } = useAdmin();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchVerifications();
-    logAction('professionals_page_viewed');
   }, []);
 
   const fetchVerifications = async () => {
@@ -95,11 +93,7 @@ const AdminProfessionals = () => {
           .eq('user_id', verification.user_id);
       }
 
-      await logAction('professional_verification_updated', {
-        verification_id: verificationId,
-        status,
-        reason
-      });
+      // Action completed successfully
 
       toast({
         title: "Sucesso",

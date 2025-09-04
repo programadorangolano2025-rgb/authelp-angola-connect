@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdmin } from '@/contexts/AdminContext';
+
 
 interface CommunityPost {
   id: string;
@@ -35,7 +35,6 @@ const AdminCommunity = () => {
   const [selectedTab, setSelectedTab] = useState('pending');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { logAction } = useAdmin();
 
   useEffect(() => {
     fetchPosts();
@@ -91,9 +90,7 @@ const AdminCommunity = () => {
 
       if (error) throw error;
 
-      await logAction('post_approved', {
-        post_id: postId
-      }, 'community_posts', postId);
+      // Action completed successfully
 
       setPosts(posts.map(post =>
         post.id === postId
@@ -124,9 +121,7 @@ const AdminCommunity = () => {
 
       if (error) throw error;
 
-      await logAction('post_rejected', {
-        post_id: postId
-      }, 'community_posts', postId);
+      // Action completed successfully
 
       setPosts(posts.map(post =>
         post.id === postId
@@ -166,9 +161,7 @@ const AdminCommunity = () => {
 
       if (error) throw error;
 
-      await logAction('post_deleted', {
-        post_id: postId
-      }, 'community_posts', postId);
+      // Action completed successfully
 
       setPosts(posts.filter(post => post.id !== postId));
 

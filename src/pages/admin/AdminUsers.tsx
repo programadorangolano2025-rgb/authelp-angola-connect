@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdmin } from '@/contexts/AdminContext';
+
 import { Users, Eye, Ban, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,12 +23,10 @@ interface UserProfile {
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const { logAction } = useAdmin();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUsers();
-    logAction('users_page_viewed');
   }, []);
 
   const fetchUsers = async () => {
