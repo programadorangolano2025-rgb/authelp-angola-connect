@@ -20,6 +20,8 @@ import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminProfessionals from "./pages/admin/AdminProfessionals";
+import AdminServices from "./pages/admin/AdminServices";
+import AdminSettings from "./pages/admin/AdminSettings";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminCommunity from "./pages/admin/AdminCommunity";
 import Videos from "./pages/Videos";
@@ -54,8 +56,10 @@ const App = () => (
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="professionals" element={<AdminProfessionals />} />
+                  <Route path="services" element={<AdminServices />} />
                   <Route path="resources" element={<AdminResources />} />
                   <Route path="community" element={<AdminCommunity />} />
+                  <Route path="settings" element={<AdminSettings />} />
                 </Route>
                 
                 {/* Legacy admin route redirect */}
@@ -63,8 +67,10 @@ const App = () => (
                   <Route index element={<AdminDashboard />} />
                   <Route path="users" element={<AdminUsers />} />
                   <Route path="professionals" element={<AdminProfessionals />} />
+                  <Route path="services" element={<AdminServices />} />
                   <Route path="resources" element={<AdminResources />} />
                   <Route path="community" element={<AdminCommunity />} />
+                  <Route path="settings" element={<AdminSettings />} />
                 </Route>
                 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
