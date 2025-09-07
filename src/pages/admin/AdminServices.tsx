@@ -210,7 +210,7 @@ const AdminServices = () => {
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          service.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === '' || service.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || selectedCategory === '' || service.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -363,7 +363,7 @@ const AdminServices = () => {
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as categorias</SelectItem>
+            <SelectItem value="all">Todas as categorias</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
