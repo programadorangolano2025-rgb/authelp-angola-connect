@@ -19,11 +19,13 @@ import NotFound from "./pages/NotFound";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
-import AdminProfessionals from "./pages/admin/AdminProfessionals";
+import { AdminProfessionals } from "./pages/admin/AdminProfessionals";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminSettings from "./pages/admin/AdminSettings";
+import AdminSupport from "./pages/admin/AdminSupport";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminCommunity from "./pages/admin/AdminCommunity";
+import { Support } from "./pages/Support";
 import Videos from "./pages/Videos";
 import Stories from "./pages/Stories";
 
@@ -50,6 +52,7 @@ const App = () => (
                 <Route path="/appointments" element={<Appointments />} />
                 <Route path="/videos" element={<Videos />} />
                 <Route path="/stories" element={<Stories />} />
+                <Route path="/support" element={<Support />} />
                 
                 {/* Admin Routes - Secret URL */}
                 <Route path="/PFLGMANEGER" element={<AdminLayout />}>
@@ -60,17 +63,7 @@ const App = () => (
                   <Route path="resources" element={<AdminResources />} />
                   <Route path="community" element={<AdminCommunity />} />
                   <Route path="settings" element={<AdminSettings />} />
-                </Route>
-                
-                {/* Legacy admin route redirect */}
-                <Route path="/admin/*" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="professionals" element={<AdminProfessionals />} />
-                  <Route path="services" element={<AdminServices />} />
-                  <Route path="resources" element={<AdminResources />} />
-                  <Route path="community" element={<AdminCommunity />} />
-                  <Route path="settings" element={<AdminSettings />} />
+                  <Route path="support" element={<AdminSupport />} />
                 </Route>
                 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

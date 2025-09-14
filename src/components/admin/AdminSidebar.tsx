@@ -56,6 +56,11 @@ const menuItems = [
     title: 'Configurações',
     url: '/PFLGMANEGER/settings',
     icon: Settings
+  },
+  {
+    title: 'Suporte',
+    url: '/PFLGMANEGER/support',
+    icon: MessageSquare
   }
 ];
 

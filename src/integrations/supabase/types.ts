@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_created_professionals: {
+        Row: {
+          admin_notes: string | null
+          bio: string | null
+          created_at: string
+          created_by_admin: boolean | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean | null
+          license_type: string
+          location: string | null
+          phone: string | null
+          professional_license: string
+          specializations: string[] | null
+          updated_at: string
+          verified: boolean | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          bio?: string | null
+          created_at?: string
+          created_by_admin?: boolean | null
+          email: string
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          license_type: string
+          location?: string | null
+          phone?: string | null
+          professional_license: string
+          specializations?: string[] | null
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Update: {
+          admin_notes?: string | null
+          bio?: string | null
+          created_at?: string
+          created_by_admin?: boolean | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          license_type?: string
+          location?: string | null
+          phone?: string | null
+          professional_license?: string
+          specializations?: string[] | null
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
       admin_logs: {
         Row: {
           action: string
@@ -493,6 +547,57 @@ export type Database = {
           updated_at?: string
           verified?: boolean | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          priority: string
+          resolved_at: string | null
+          response: string | null
+          status: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          priority?: string
+          resolved_at?: string | null
+          response?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          priority?: string
+          resolved_at?: string | null
+          response?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
