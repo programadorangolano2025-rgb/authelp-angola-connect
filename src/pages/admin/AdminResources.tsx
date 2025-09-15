@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Video, FileText, Headphones, Youtube, Heart, Trash2, Edit3, Eye } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { FileUploader } from '@/components/FileUploader';
+import { Plus, Search, Filter, Video, FileText, BookOpen, Upload, Eye, Edit, Trash2, Globe, Clock, BarChart3, Users, X, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface Resource {
   id: string;
@@ -30,7 +33,7 @@ interface Resource {
   created_by: string | null;
 }
 
-const AdminResources = () => {
+const AdminResourcesEnhanced = () => {
   const [resources, setResources] = useState<Resource[]>([]);
   const [filteredResources, setFilteredResources] = useState<Resource[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,33 +42,31 @@ const AdminResources = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { logAction } = useAdmin();
 
   const [newResource, setNewResource] = useState({
     title: '',
     description: '',
     content_type: 'video',
-    category: 'historias',
+    category: 'Sensorial',
     url: '',
-    is_premium: false
+    thumbnail_url: '',
+    is_premium: false,
+    tags: [] as string[],
+    duration: '',
+    age_range: '4-6',
+    difficulty_level: 'beginner'
   });
+  
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewMode, setPreviewMode] = useState<'grid' | 'list'>('grid');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [tagInput, setTagInput] = useState('');
 
-  const categories = [
-    { value: 'all', label: 'Todas Categorias' },
-    { value: 'historias', label: 'Histórias' },
-    { value: 'videos-educativos', label: 'Vídeos Educativos' },
-    { value: 'therapy', label: 'Terapias' },
-    { value: 'communication', label: 'Comunicação' },
-    { value: 'education', label: 'Educação' }
-  ];
-
-  const contentTypes = [
-    { value: 'all', label: 'Todos os Tipos' },
-    { value: 'video', label: 'Vídeo', icon: Video },
-    { value: 'pdf', label: 'PDF', icon: FileText },
-    { value: 'audio', label: 'Áudio', icon: Headphones },
-    { value: 'story', label: 'História', icon: Heart }
-  ];
+  const categories = ['Sensorial', 'Comunicação', 'Habilidades Sociais', 'Rotinas', 'Educacional', 'Terapias', 'Família', 'Escola'];
+  const contentTypes = ['video', 'pdf', 'story', 'audio', 'image'];
+  const difficultyLevels = ['beginner', 'intermediate', 'advanced'];
+  const ageRanges = ['0-3', '4-6', '7-12', '13-18', 'adulto'];
 
   useEffect(() => {
     fetchResources();
@@ -117,15 +118,40 @@ const AdminResources = () => {
     setFilteredResources(filtered);
   };
 
-  const extractYouTubeVideoId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+  const handleAddTag = () => {
+    if (tagInput.trim() && !newResource.tags.includes(tagInput.trim())) {
+      setNewResource(prev => ({
+        ...prev,
+        tags: [...prev.tags, tagInput.trim()]
+      }));
+      setTagInput('');
+    }
   };
 
-  const generateYouTubeThumbnail = (url: string) => {
-    const videoId = extractYouTubeVideoId(url);
-    return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
+  const removeTag = (tagToRemove: string) => {
+    setNewResource(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const handleFileUpload = async (file: File) => {
+    // This would implement file upload to Supabase Storage
+    // For now, we'll just simulate the upload
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    // Simulate upload progress
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsUploading(false);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 200);
   };
 
   const handleAddResource = async () => {
@@ -139,10 +165,6 @@ const AdminResources = () => {
     }
 
     try {
-      const thumbnailUrl = newResource.content_type === 'video' && newResource.url 
-        ? generateYouTubeThumbnail(newResource.url)
-        : null;
-
       const { data, error } = await supabase
         .from('resources')
         .insert({
@@ -151,8 +173,8 @@ const AdminResources = () => {
           content_type: newResource.content_type,
           category: newResource.category,
           url: newResource.url || null,
-          thumbnail_url: thumbnailUrl,
-          is_published: true,
+          thumbnail_url: newResource.thumbnail_url || null,
+          is_published: false, // Start as draft
           is_premium: newResource.is_premium,
           created_by: null // Admin created
         })
@@ -161,23 +183,9 @@ const AdminResources = () => {
 
       if (error) throw error;
 
-      await logAction('resource_created', {
-        resource_id: data.id,
-        title: newResource.title,
-        category: newResource.category,
-        content_type: newResource.content_type
-      }, 'resources', data.id);
-
       setResources([data, ...resources]);
       setIsAddDialogOpen(false);
-      setNewResource({
-        title: '',
-        description: '',
-        content_type: 'video',
-        category: 'historias',
-        url: '',
-        is_premium: false
-      });
+      resetForm();
 
       toast({
         title: "Sucesso",
@@ -193,6 +201,25 @@ const AdminResources = () => {
     }
   };
 
+  const resetForm = () => {
+    setNewResource({
+      title: '',
+      description: '',
+      content_type: 'video',
+      category: 'Sensorial',
+      url: '',
+      thumbnail_url: '',
+      is_premium: false,
+      tags: [],
+      duration: '',
+      age_range: '4-6',
+      difficulty_level: 'beginner'
+    });
+    setSelectedFile(null);
+    setTagInput('');
+    setUploadProgress(0);
+  };
+
   const togglePublishStatus = async (resourceId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
@@ -202,13 +229,8 @@ const AdminResources = () => {
 
       if (error) throw error;
 
-      await logAction('resource_publication_changed', {
-        resource_id: resourceId,
-        new_status: !currentStatus
-      }, 'resources', resourceId);
-
-      setResources(resources.map(resource =>
-        resource.id === resourceId
+      setResources(resources.map(resource => 
+        resource.id === resourceId 
           ? { ...resource, is_published: !currentStatus }
           : resource
       ));
@@ -218,10 +240,10 @@ const AdminResources = () => {
         description: `Recurso ${!currentStatus ? 'publicado' : 'despublicado'} com sucesso`
       });
     } catch (error) {
-      console.error('Erro ao alterar status:', error);
+      console.error('Erro ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível alterar o status",
+        description: "Não foi possível atualizar o status",
         variant: "destructive"
       });
     }
@@ -238,12 +260,8 @@ const AdminResources = () => {
 
       if (error) throw error;
 
-      await logAction('resource_deleted', {
-        resource_id: resourceId
-      }, 'resources', resourceId);
-
       setResources(resources.filter(resource => resource.id !== resourceId));
-
+      
       toast({
         title: "Sucesso",
         description: "Recurso excluído com sucesso"
@@ -259,27 +277,28 @@ const AdminResources = () => {
   };
 
   const getContentTypeIcon = (type: string) => {
-    const typeObj = contentTypes.find(ct => ct.value === type);
-    return typeObj?.icon || FileText;
+    switch (type) {
+      case 'video': return Video;
+      case 'pdf': return FileText;
+      case 'story': return BookOpen;
+      default: return FileText;
+    }
   };
 
   const getContentTypeColor = (type: string) => {
     switch (type) {
-      case 'video': return 'text-blue-500';
-      case 'pdf': return 'text-red-500';
-      case 'audio': return 'text-green-500';
-      case 'story': return 'text-pink-500';
-      default: return 'text-gray-500';
+      case 'video': return 'bg-blue-100 text-blue-800';
+      case 'pdf': return 'bg-red-100 text-red-800';
+      case 'story': return 'bg-green-100 text-green-800';
+      case 'audio': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center space-y-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Carregando recursos...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -289,122 +308,221 @@ const AdminResources = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Gestão de Recursos</h1>
+          <h1 className="text-3xl font-bold">Gestão de Recursos</h1>
           <p className="text-muted-foreground">
-            Gerencie histórias, vídeos educativos e outros recursos da plataforma
+            Gerencie vídeos, PDFs, histórias e outros conteúdos educativos
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Recurso
+            <Button className="flex items-center space-x-2">
+              <Plus className="h-4 w-4" />
+              <span>Adicionar Recurso</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Recurso</DialogTitle>
+              <DialogDescription>
+                Crie um novo recurso educativo para a plataforma
+              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="title">Título</Label>
-                <Input
-                  id="title"
-                  value={newResource.title}
-                  onChange={(e) => setNewResource({...newResource, title: e.target.value})}
-                  placeholder="Digite o título do recurso"
-                />
-              </div>
+            
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+                <TabsTrigger value="content">Conteúdo</TabsTrigger>
+                <TabsTrigger value="settings">Configurações</TabsTrigger>
+              </TabsList>
               
-              <div>
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea
-                  id="description"
-                  value={newResource.description}
-                  onChange={(e) => setNewResource({...newResource, description: e.target.value})}
-                  placeholder="Descreva o conteúdo do recurso"
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="content_type">Tipo</Label>
-                  <Select
-                    value={newResource.content_type}
-                    onValueChange={(value) => setNewResource({...newResource, content_type: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {contentTypes.slice(1).map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <TabsContent value="basic" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="title">Título *</Label>
+                    <Input
+                      id="title"
+                      value={newResource.title}
+                      onChange={(e) => setNewResource({...newResource, title: e.target.value})}
+                      placeholder="Digite o título do recurso"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="category">Categoria</Label>
+                    <Select value={newResource.category} onValueChange={(value) => setNewResource({...newResource, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-
+                
                 <div>
-                  <Label htmlFor="category">Categoria</Label>
-                  <Select
-                    value={newResource.category}
-                    onValueChange={(value) => setNewResource({...newResource, category: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.slice(1).map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="description">Descrição *</Label>
+                  <Textarea
+                    id="description"
+                    value={newResource.description}
+                    onChange={(e) => setNewResource({...newResource, description: e.target.value})}
+                    placeholder="Descreva o recurso..."
+                    rows={3}
+                  />
                 </div>
-              </div>
-
-              {newResource.content_type === 'video' && (
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="content_type">Tipo de Conteúdo</Label>
+                    <Select value={newResource.content_type} onValueChange={(value) => setNewResource({...newResource, content_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contentTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="age_range">Faixa Etária</Label>
+                    <Select value={newResource.age_range} onValueChange={(value) => setNewResource({...newResource, age_range: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ageRanges.map((range) => (
+                          <SelectItem key={range} value={range}>
+                            {range}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="difficulty">Dificuldade</Label>
+                    <Select value={newResource.difficulty_level} onValueChange={(value) => setNewResource({...newResource, difficulty_level: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {difficultyLevels.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level === 'beginner' ? 'Iniciante' : level === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Tags */}
                 <div>
-                  <Label htmlFor="url">URL do YouTube</Label>
-                  <div className="relative">
-                    <Youtube className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-red-500" />
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {newResource.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                        {tag}
+                        <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      placeholder="Adicionar tag..."
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                    />
+                    <Button type="button" variant="outline" onClick={handleAddTag}>
+                      <Tag className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="content" className="space-y-4">
+                {newResource.content_type === 'video' ? (
+                  <div>
+                    <Label htmlFor="url">URL do Vídeo (YouTube)</Label>
                     <Input
                       id="url"
                       value={newResource.url}
                       onChange={(e) => setNewResource({...newResource, url: e.target.value})}
                       placeholder="https://www.youtube.com/watch?v=..."
-                      className="pl-10"
                     />
                   </div>
+                ) : (
+                  <div>
+                    <Label>Upload de Arquivo</Label>
+                    <FileUploader
+                      onFileSelect={(file) => {
+                        setSelectedFile(file);
+                        handleFileUpload(file);
+                      }}
+                      onFileRemove={() => setSelectedFile(null)}
+                      selectedFile={selectedFile}
+                      uploadProgress={uploadProgress}
+                      isUploading={isUploading}
+                    />
+                  </div>
+                )}
+                
+                <div>
+                  <Label htmlFor="thumbnail">URL da Thumbnail (opcional)</Label>
+                  <Input
+                    id="thumbnail"
+                    value={newResource.thumbnail_url}
+                    onChange={(e) => setNewResource({...newResource, thumbnail_url: e.target.value})}
+                    placeholder="https://..."
+                  />
                 </div>
-              )}
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_premium"
-                  checked={newResource.is_premium}
-                  onChange={(e) => setNewResource({...newResource, is_premium: e.target.checked})}
-                  className="rounded"
-                />
-                <Label htmlFor="is_premium">Conteúdo Premium</Label>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button onClick={handleAddResource} className="flex-1">
-                  Adicionar Recurso
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setIsAddDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-              </div>
+                
+                {newResource.content_type === 'video' && (
+                  <div>
+                    <Label htmlFor="duration">Duração (minutos)</Label>
+                    <Input
+                      id="duration"
+                      value={newResource.duration}
+                      onChange={(e) => setNewResource({...newResource, duration: e.target.value})}
+                      placeholder="Ex: 10"
+                      type="number"
+                    />
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="settings" className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="premium"
+                    checked={newResource.is_premium}
+                    onCheckedChange={(checked) => setNewResource({...newResource, is_premium: checked})}
+                  />
+                  <Label htmlFor="premium">Conteúdo Premium</Label>
+                </div>
+                
+                <Alert>
+                  <AlertDescription>
+                    O recurso será criado como rascunho e poderá ser publicado posteriormente.
+                  </AlertDescription>
+                </Alert>
+              </TabsContent>
+            </Tabs>
+            
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleAddResource} disabled={isUploading}>
+                {isUploading ? 'Fazendo Upload...' : 'Adicionar Recurso'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -413,50 +531,39 @@ const AdminResources = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium leading-none">Total de Recursos</p>
-                <p className="text-2xl font-bold">{resources.length}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total de Recursos</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{resources.length}</div>
           </CardContent>
         </Card>
-        
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Eye className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-sm font-medium leading-none">Publicados</p>
-                <p className="text-2xl font-bold">{resources.filter(r => r.is_published).length}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Publicados</CardTitle>
+            <Globe className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{resources.filter(r => r.is_published).length}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Video className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm font-medium leading-none">Vídeos</p>
-                <p className="text-2xl font-bold">{resources.filter(r => r.content_type === 'video').length}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Vídeos</CardTitle>
+            <Video className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{resources.filter(r => r.content_type === 'video').length}</div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2">
-              <Heart className="h-5 w-5 text-pink-500" />
-              <div>
-                <p className="text-sm font-medium leading-none">Histórias</p>
-                <p className="text-2xl font-bold">{resources.filter(r => r.category === 'historias').length}</p>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Histórias</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{resources.filter(r => r.content_type === 'story').length}</div>
           </CardContent>
         </Card>
       </div>
@@ -464,10 +571,10 @@ const AdminResources = () => {
       {/* Filters */}
       <Card>
         <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Buscar recursos..."
                   value={searchTerm}
@@ -475,28 +582,30 @@ const AdminResources = () => {
                   className="pl-10"
                 />
               </div>
-              
+            </div>
+            <div className="flex gap-2">
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue />
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Categoria" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Todas Categorias</SelectItem>
                   {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
+                    <SelectItem key={category} value={category}>
+                      {category}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-
               <Select value={selectedContentType} onValueChange={setSelectedContentType}>
-                <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue />
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Tipo" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Todos os Tipos</SelectItem>
                   {contentTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
+                    <SelectItem key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -506,91 +615,79 @@ const AdminResources = () => {
         </CardContent>
       </Card>
 
-      {/* Resources List */}
-      <div className="grid gap-4">
+      {/* Resources Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredResources.map((resource) => {
           const IconComponent = getContentTypeIcon(resource.content_type);
           return (
-            <Card key={resource.id}>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex space-x-4 flex-1">
-                    {/* Thumbnail/Icon */}
-                    <div className="flex-shrink-0">
-                      {resource.thumbnail_url ? (
-                        <img
-                          src={resource.thumbnail_url}
-                          alt={resource.title}
-                          className="w-20 h-14 object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className={`w-20 h-14 flex items-center justify-center rounded-lg bg-muted ${getContentTypeColor(resource.content_type)}`}>
-                          <IconComponent className="h-6 w-6" />
-                        </div>
-                      )}
+            <Card key={resource.id} className="group hover:shadow-lg transition-shadow">
+              <div className="relative">
+                {resource.thumbnail_url && (
+                  <img
+                    src={resource.thumbnail_url}
+                    alt={resource.title}
+                    className="w-full h-48 object-cover rounded-t-lg"
+                  />
+                )}
+                <div className="absolute top-2 left-2">
+                  <Badge className={getContentTypeColor(resource.content_type)}>
+                    <IconComponent className="h-3 w-3 mr-1" />
+                    {resource.content_type}
+                  </Badge>
+                </div>
+                <div className="absolute top-2 right-2">
+                  <Badge variant={resource.is_published ? "default" : "secondary"}>
+                    {resource.is_published ? "Publicado" : "Rascunho"}
+                  </Badge>
+                </div>
+              </div>
+              
+              <CardHeader>
+                <CardTitle className="text-lg line-clamp-2">{resource.title}</CardTitle>
+                <CardDescription className="line-clamp-2">
+                  {resource.description}
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                  <Badge variant="outline">{resource.category}</Badge>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-1">
+                      <Eye className="h-3 w-3" />
+                      <span>{resource.downloads_count}</span>
                     </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground mb-1">
-                            {resource.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                            {resource.description}
-                          </p>
-                          
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant={resource.is_published ? "default" : "secondary"}>
-                              {resource.is_published ? "Publicado" : "Rascunho"}
-                            </Badge>
-                            <Badge variant="outline">
-                              {categories.find(c => c.value === resource.category)?.label}
-                            </Badge>
-                            <Badge variant="outline">
-                              {contentTypes.find(ct => ct.value === resource.content_type)?.label}
-                            </Badge>
-                            {resource.is_premium && (
-                              <Badge className="bg-yellow-500">Premium</Badge>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Heart className="h-4 w-4" />
-                              {resource.likes_count}
-                            </span>
-                            <span>{resource.downloads_count} downloads</span>
-                            <span>
-                              {new Date(resource.created_at).toLocaleDateString('pt-BR')}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                    <div className="flex items-center space-x-1">
+                      <Users className="h-3 w-3" />
+                      <span>{resource.likes_count}</span>
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 ml-4">
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(resource.created_at).toLocaleDateString('pt-BR')}
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => togglePublishStatus(resource.id, resource.is_published)}
                     >
-                      <Eye className="h-4 w-4" />
+                      {resource.is_published ? 'Despublicar' : 'Publicar'}
                     </Button>
-                    
-                    <Button variant="outline" size="sm">
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    
                     <Button
                       variant="outline"
                       size="sm"
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       onClick={() => deleteResource(resource.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
@@ -601,18 +698,16 @@ const AdminResources = () => {
       </div>
 
       {filteredResources.length === 0 && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Nenhum recurso encontrado</h3>
-            <p className="text-muted-foreground">
-              Tente ajustar os filtros ou adicione novos recursos
-            </p>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12">
+          <div className="text-muted-foreground mb-4">
+            <Upload className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg">Nenhum recurso encontrado</p>
+            <p className="text-sm">Tente ajustar os filtros ou adicione um novo recurso</p>
+          </div>
+        </div>
       )}
     </div>
   );
 };
 
-export default AdminResources;
+export default AdminResourcesEnhanced;
