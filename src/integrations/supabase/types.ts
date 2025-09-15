@@ -631,6 +631,81 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_data: Json | null
+          achievement_type: string
+          earned_at: string
+          id: string
+          is_viewed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          achievement_data?: Json | null
+          achievement_type: string
+          earned_at?: string
+          id?: string
+          is_viewed?: boolean | null
+          user_id: string
+        }
+        Update: {
+          achievement_data?: Json | null
+          achievement_type?: string
+          earned_at?: string
+          id?: string
+          is_viewed?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          audio_feedback: boolean | null
+          celebration_style: string | null
+          color_scheme: string | null
+          created_at: string
+          focus_mode: boolean | null
+          font_size: string | null
+          haptic_feedback: boolean | null
+          id: string
+          pictogram_mode: boolean | null
+          reduce_animations: boolean | null
+          theme_preference: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          audio_feedback?: boolean | null
+          celebration_style?: string | null
+          color_scheme?: string | null
+          created_at?: string
+          focus_mode?: boolean | null
+          font_size?: string | null
+          haptic_feedback?: boolean | null
+          id?: string
+          pictogram_mode?: boolean | null
+          reduce_animations?: boolean | null
+          theme_preference?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          audio_feedback?: boolean | null
+          celebration_style?: string | null
+          color_scheme?: string | null
+          created_at?: string
+          focus_mode?: boolean | null
+          font_size?: string | null
+          haptic_feedback?: boolean | null
+          id?: string
+          pictogram_mode?: boolean | null
+          reduce_animations?: boolean | null
+          theme_preference?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
