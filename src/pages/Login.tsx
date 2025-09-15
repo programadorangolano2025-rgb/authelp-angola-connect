@@ -51,7 +51,7 @@ const Login = () => {
           title: "Login realizado com sucesso!",
           description: "Redirecionando...",
         })
-        window.location.href = "/home"
+        navigate('/home')
       }
     } catch (error: any) {
       toast({
