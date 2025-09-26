@@ -7,6 +7,7 @@ import { Search, Play, Heart, Download, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { VideoModal } from '@/components/VideoModal';
 
 interface VideoResource {
   id: string;
@@ -25,6 +26,7 @@ const Videos = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<VideoResource | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -75,8 +77,8 @@ const Videos = () => {
     return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '/placeholder.svg';
   };
 
-  const handleVideoClick = (url: string) => {
-    window.open(url, '_blank');
+  const handleVideoClick = (video: VideoResource) => {
+    setSelectedVideo(video);
   };
 
   if (loading) {
@@ -152,7 +154,7 @@ const Videos = () => {
                   <Button
                     size="icon"
                     className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    onClick={() => handleVideoClick(video.url)}
+                    onClick={() => handleVideoClick(video)}
                   >
                     <Play className="h-6 w-6" />
                   </Button>
@@ -198,6 +200,15 @@ const Videos = () => {
           </div>
         )}
       </div>
+      
+      {selectedVideo && (
+        <VideoModal
+          isOpen={!!selectedVideo}
+          onClose={() => setSelectedVideo(null)}
+          videoUrl={selectedVideo.url}
+          title={selectedVideo.title}
+        />
+      )}
     </div>
   );
 };

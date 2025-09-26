@@ -41,6 +41,7 @@ const AdminResourcesEnhanced = () => {
   const [selectedContentType, setSelectedContentType] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
 
   const [newResource, setNewResource] = useState({
@@ -49,6 +50,7 @@ const AdminResourcesEnhanced = () => {
     content_type: 'video',
     category: 'Sensorial',
     url: '',
+    file_path: '',
     thumbnail_url: '',
     is_premium: false,
     tags: [] as string[],
@@ -70,7 +72,13 @@ const AdminResourcesEnhanced = () => {
 
   useEffect(() => {
     fetchResources();
+    getCurrentUser();
   }, []);
+
+  const getCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setCurrentUser(user);
+  };
 
   useEffect(() => {
     filterResources();
@@ -135,25 +143,6 @@ const AdminResourcesEnhanced = () => {
     }));
   };
 
-  const handleFileUpload = async (file: File) => {
-    // This would implement file upload to Supabase Storage
-    // For now, we'll just simulate the upload
-    setIsUploading(true);
-    setUploadProgress(0);
-    
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsUploading(false);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
-  };
-
   const handleAddResource = async () => {
     if (!newResource.title || !newResource.description) {
       toast({
@@ -184,6 +173,7 @@ const AdminResourcesEnhanced = () => {
           content_type: newResource.content_type,
           category: newResource.category,
           url: newResource.url || null,
+          file_path: newResource.file_path || null,
           thumbnail_url: newResource.thumbnail_url || null,
           is_published: false, // Start as draft
           is_premium: newResource.is_premium,
@@ -219,6 +209,7 @@ const AdminResourcesEnhanced = () => {
       content_type: 'video',
       category: 'Sensorial',
       url: '',
+      file_path: '',
       thumbnail_url: '',
       is_premium: false,
       tags: [],
@@ -459,31 +450,37 @@ const AdminResourcesEnhanced = () => {
               </TabsContent>
               
               <TabsContent value="content" className="space-y-4">
-                {newResource.content_type === 'video' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="url">URL do Vídeo (YouTube)</Label>
+                    <Label htmlFor="url">URL do Recurso (YouTube, etc.)</Label>
                     <Input
                       id="url"
                       value={newResource.url}
                       onChange={(e) => setNewResource({...newResource, url: e.target.value})}
-                      placeholder="https://www.youtube.com/watch?v=..."
+                      placeholder="https://www.youtube.com/watch?v=... (opcional)"
                     />
                   </div>
-                ) : (
-                  <div>
-                    <Label>Upload de Arquivo</Label>
-                    <FileUploader
-                      onFileSelect={(file) => {
-                        setSelectedFile(file);
-                        handleFileUpload(file);
-                      }}
-                      onFileRemove={() => setSelectedFile(null)}
-                      selectedFile={selectedFile}
-                      uploadProgress={uploadProgress}
-                      isUploading={isUploading}
-                    />
-                  </div>
-                )}
+                  
+                   <div>
+                     <Label>OU Upload de Arquivo Local</Label>
+                     <FileUploader
+                       onFileSelect={(file) => {
+                         setSelectedFile(file);
+                         setIsUploading(true);
+                       }}
+                       onFileRemove={() => setSelectedFile(null)}
+                       onUploadComplete={(filePath) => {
+                         setNewResource(prev => ({ ...prev, file_path: filePath }));
+                         setIsUploading(false);
+                         setUploadProgress(100);
+                       }}
+                       selectedFile={selectedFile}
+                       uploadProgress={uploadProgress}
+                       isUploading={isUploading}
+                       userId={currentUser?.id}
+                     />
+                   </div>
+                 </div>
                 
                 <div>
                   <Label htmlFor="thumbnail">URL da Thumbnail (opcional)</Label>
