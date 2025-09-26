@@ -165,6 +165,17 @@ const AdminResourcesEnhanced = () => {
     }
 
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Erro",
+          description: "Usuário não autenticado",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('resources')
         .insert({
@@ -176,7 +187,7 @@ const AdminResourcesEnhanced = () => {
           thumbnail_url: newResource.thumbnail_url || null,
           is_published: false, // Start as draft
           is_premium: newResource.is_premium,
-          created_by: null // Admin created
+          created_by: user.id // Set to current authenticated user
         })
         .select()
         .single();
