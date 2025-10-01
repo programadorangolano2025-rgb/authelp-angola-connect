@@ -79,6 +79,19 @@ const Videos = () => {
     return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '/placeholder.svg';
   };
 
+  const getThumbnailUrl = (video: VideoResource) => {
+    // Se tem thumbnail_url customizado, usa ele
+    if (video.thumbnail_url) {
+      return video.thumbnail_url;
+    }
+    // Se tem URL do YouTube, gera thumbnail automaticamente
+    if (video.url) {
+      return getYouTubeThumbnail(video.url);
+    }
+    // Fallback para placeholder
+    return '/placeholder.svg';
+  };
+
   const handleVideoClick = (video: VideoResource) => {
     setSelectedVideo(video);
   };
@@ -148,9 +161,12 @@ const Videos = () => {
             <Card key={video.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
               <div className="relative overflow-hidden rounded-t-lg">
                 <img
-                  src={getYouTubeThumbnail(video.url)}
+                  src={getThumbnailUrl(video)}
                   alt={video.title}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
                   <Button

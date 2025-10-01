@@ -40,6 +40,8 @@ const AdminResourcesEnhanced = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedContentType, setSelectedContentType] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { toast } = useToast();
@@ -165,6 +167,15 @@ const AdminResourcesEnhanced = () => {
         return;
       }
 
+      // Gerar thumbnail automaticamente para vídeos do YouTube se não houver uma personalizada
+      let finalThumbnailUrl = newResource.thumbnail_url;
+      if (!finalThumbnailUrl && newResource.url && newResource.content_type === 'video') {
+        const youtubeVideoId = getYouTubeVideoId(newResource.url);
+        if (youtubeVideoId) {
+          finalThumbnailUrl = `https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg`;
+        }
+      }
+
       const { data, error } = await supabase
         .from('resources')
         .insert({
@@ -174,7 +185,7 @@ const AdminResourcesEnhanced = () => {
           category: newResource.category,
           url: newResource.url || null,
           file_path: newResource.file_path || null,
-          thumbnail_url: newResource.thumbnail_url || null,
+          thumbnail_url: finalThumbnailUrl || null,
           is_published: false, // Start as draft
           is_premium: newResource.is_premium,
           created_by: user.id // Set to current authenticated user
@@ -220,6 +231,76 @@ const AdminResourcesEnhanced = () => {
     setSelectedFile(null);
     setTagInput('');
     setUploadProgress(0);
+  };
+
+  const handleEditResource = (resource: Resource) => {
+    setEditingResource(resource);
+    setNewResource({
+      title: resource.title,
+      description: resource.description || '',
+      content_type: resource.content_type,
+      category: resource.category,
+      url: resource.url || '',
+      file_path: resource.file_path || '',
+      thumbnail_url: resource.thumbnail_url || '',
+      is_premium: resource.is_premium,
+      tags: [],
+      duration: '',
+      age_range: '4-6',
+      difficulty_level: 'beginner'
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateResource = async () => {
+    if (!editingResource || !newResource.title || !newResource.description) {
+      toast({
+        title: "Erro",
+        description: "Título e descrição são obrigatórios",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('resources')
+        .update({
+          title: newResource.title,
+          description: newResource.description,
+          content_type: newResource.content_type,
+          category: newResource.category,
+          url: newResource.url || null,
+          file_path: newResource.file_path || null,
+          thumbnail_url: newResource.thumbnail_url || null,
+          is_premium: newResource.is_premium,
+        })
+        .eq('id', editingResource.id);
+
+      if (error) throw error;
+
+      setResources(resources.map(r => 
+        r.id === editingResource.id 
+          ? { ...r, ...newResource, description: newResource.description }
+          : r
+      ));
+      
+      setIsEditDialogOpen(false);
+      setEditingResource(null);
+      resetForm();
+
+      toast({
+        title: "Sucesso",
+        description: "Recurso atualizado com sucesso"
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar recurso:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o recurso",
+        variant: "destructive"
+      });
+    }
   };
 
   const togglePublishStatus = async (resourceId: string, currentStatus: boolean) => {
@@ -295,6 +376,12 @@ const AdminResourcesEnhanced = () => {
       case 'audio': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getYouTubeVideoId = (url: string) => {
+    const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
   };
 
   if (loading) {
@@ -534,6 +621,160 @@ const AdminResourcesEnhanced = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Recurso</DialogTitle>
+              <DialogDescription>
+                Atualize as informações do recurso
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
+                <TabsTrigger value="content">Conteúdo</TabsTrigger>
+                <TabsTrigger value="settings">Configurações</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="basic" className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-title">Título *</Label>
+                    <Input
+                      id="edit-title"
+                      value={newResource.title}
+                      onChange={(e) => setNewResource({...newResource, title: e.target.value})}
+                      placeholder="Digite o título do recurso"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-category">Categoria</Label>
+                    <Select value={newResource.category} onValueChange={(value) => setNewResource({...newResource, category: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-description">Descrição *</Label>
+                  <Textarea
+                    id="edit-description"
+                    value={newResource.description}
+                    onChange={(e) => setNewResource({...newResource, description: e.target.value})}
+                    placeholder="Descreva o recurso..."
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="edit-content_type">Tipo de Conteúdo</Label>
+                    <Select value={newResource.content_type} onValueChange={(value) => setNewResource({...newResource, content_type: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {contentTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-age_range">Faixa Etária</Label>
+                    <Select value={newResource.age_range} onValueChange={(value) => setNewResource({...newResource, age_range: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ageRanges.map((range) => (
+                          <SelectItem key={range} value={range}>
+                            {range}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-difficulty">Dificuldade</Label>
+                    <Select value={newResource.difficulty_level} onValueChange={(value) => setNewResource({...newResource, difficulty_level: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {difficultyLevels.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level === 'beginner' ? 'Iniciante' : level === 'intermediate' ? 'Intermediário' : 'Avançado'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="content" className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-url">URL do Recurso (YouTube, etc.)</Label>
+                  <Input
+                    id="edit-url"
+                    value={newResource.url}
+                    onChange={(e) => setNewResource({...newResource, url: e.target.value})}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="edit-thumbnail">URL da Thumbnail</Label>
+                  <Input
+                    id="edit-thumbnail"
+                    value={newResource.thumbnail_url}
+                    onChange={(e) => setNewResource({...newResource, thumbnail_url: e.target.value})}
+                    placeholder="https://..."
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="settings" className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="edit-premium"
+                    checked={newResource.is_premium}
+                    onCheckedChange={(checked) => setNewResource({...newResource, is_premium: checked})}
+                  />
+                  <Label htmlFor="edit-premium">Conteúdo Premium</Label>
+                </div>
+              </TabsContent>
+            </Tabs>
+            
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button variant="outline" onClick={() => {
+                setIsEditDialogOpen(false);
+                setEditingResource(null);
+                resetForm();
+              }}>
+                Cancelar
+              </Button>
+              <Button onClick={handleUpdateResource}>
+                Atualizar Recurso
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Stats Cards */}
@@ -687,6 +928,7 @@ const AdminResourcesEnhanced = () => {
                     <Button
                       variant="outline"
                       size="sm"
+                      onClick={() => handleEditResource(resource)}
                     >
                       <Edit className="h-3 w-3" />
                     </Button>

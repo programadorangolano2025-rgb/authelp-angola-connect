@@ -20,7 +20,19 @@ export const VideoModal = ({ isOpen, onClose, videoUrl, title }: VideoModalProps
   const getEmbedUrl = (url: string | null) => {
     if (!url) return '';
     const videoId = getYouTubeVideoId(url);
-    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0` : url;
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+    }
+    // Se não for YouTube, verifica se é URL do Supabase Storage
+    if (url.includes('supabase.co/storage')) {
+      return url;
+    }
+    return url;
+  };
+
+  const isYouTubeVideo = (url: string | null) => {
+    if (!url) return false;
+    return getYouTubeVideoId(url) !== null;
   };
 
   return (
@@ -34,14 +46,26 @@ export const VideoModal = ({ isOpen, onClose, videoUrl, title }: VideoModalProps
         </div>
         
         <div className="relative w-full h-0 pb-[56.25%]"> {/* 16:9 aspect ratio */}
-          <iframe
-            src={getEmbedUrl(videoUrl)}
-            className="absolute top-0 left-0 w-full h-full"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={title}
-          />
+          {isYouTubeVideo(videoUrl) ? (
+            <iframe
+              src={getEmbedUrl(videoUrl)}
+              className="absolute top-0 left-0 w-full h-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={title}
+            />
+          ) : (
+            <video
+              src={getEmbedUrl(videoUrl)}
+              className="absolute top-0 left-0 w-full h-full"
+              controls
+              autoPlay
+              title={title}
+            >
+              Seu navegador não suporta a reprodução de vídeo.
+            </video>
+          )}
         </div>
       </DialogContent>
     </Dialog>
