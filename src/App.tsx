@@ -2,9 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { BottomNav } from "./components/BottomNav";
 import Welcome from "./pages/Welcome";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -29,6 +30,47 @@ import { Support } from "./pages/Support";
 import Videos from "./pages/Videos";
 import Stories from "./pages/Stories";
 
+const AppContent = () => {
+  const location = useLocation();
+  const showBottomNav = !["/", "/register", "/login"].includes(location.pathname) && 
+                        !location.pathname.startsWith("/PFLGMANEGER");
+
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Welcome />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/routines" element={<Routines />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/videos" element={<Videos />} />
+        <Route path="/stories" element={<Stories />} />
+        <Route path="/support" element={<Support />} />
+        
+        {/* Admin Routes */}
+        <Route path="/PFLGMANEGER" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="professionals" element={<AdminProfessionals />} />
+          <Route path="services" element={<AdminServices />} />
+          <Route path="resources" element={<AdminResources />} />
+          <Route path="community" element={<AdminCommunity />} />
+          <Route path="settings" element={<AdminSettings />} />
+          <Route path="support" element={<AdminSupport />} />
+        </Route>
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      {showBottomNav && <BottomNav />}
+    </>
+  );
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -39,38 +81,9 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Welcome />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/routines" element={<Routines />} />
-                <Route path="/services" element={<Services />} />
-                <Route path="/resources" element={<Resources />} />
-                <Route path="/community" element={<Community />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/appointments" element={<Appointments />} />
-                <Route path="/videos" element={<Videos />} />
-                <Route path="/stories" element={<Stories />} />
-                <Route path="/support" element={<Support />} />
-                
-                {/* Admin Routes - Secret URL */}
-                <Route path="/PFLGMANEGER" element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<AdminUsers />} />
-                  <Route path="professionals" element={<AdminProfessionals />} />
-                  <Route path="services" element={<AdminServices />} />
-                  <Route path="resources" element={<AdminResources />} />
-                  <Route path="community" element={<AdminCommunity />} />
-                  <Route path="settings" element={<AdminSettings />} />
-                  <Route path="support" element={<AdminSupport />} />
-                </Route>
-                
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
       </SettingsProvider>
     </AuthProvider>
   </QueryClientProvider>
