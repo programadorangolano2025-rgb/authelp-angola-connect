@@ -10,13 +10,15 @@ interface VideoModalProps {
 }
 
 export const VideoModal = ({ isOpen, onClose, videoUrl, title }: VideoModalProps) => {
-  const getYouTubeVideoId = (url: string) => {
+  const getYouTubeVideoId = (url: string | null) => {
+    if (!url) return null;
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
 
-  const getEmbedUrl = (url: string) => {
+  const getEmbedUrl = (url: string | null) => {
+    if (!url) return '';
     const videoId = getYouTubeVideoId(url);
     return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0` : url;
   };

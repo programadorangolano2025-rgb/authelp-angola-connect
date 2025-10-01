@@ -66,13 +66,15 @@ const Videos = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const getYouTubeVideoId = (url: string) => {
+  const getYouTubeVideoId = (url: string | null) => {
+    if (!url) return null;
     const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
 
-  const getYouTubeThumbnail = (url: string) => {
+  const getYouTubeThumbnail = (url: string | null) => {
+    if (!url) return '/placeholder.svg';
     const videoId = getYouTubeVideoId(url);
     return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '/placeholder.svg';
   };
