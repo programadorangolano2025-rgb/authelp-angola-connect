@@ -29,6 +29,7 @@ import AdminCommunity from "./pages/admin/AdminCommunity";
 import { Support } from "./pages/Support";
 import Videos from "./pages/Videos";
 import Stories from "./pages/Stories";
+import Games from "./pages/Games";
 
 const AppContent = () => {
   const location = useLocation();
@@ -50,6 +51,7 @@ const AppContent = () => {
         <Route path="/appointments" element={<Appointments />} />
         <Route path="/videos" element={<Videos />} />
         <Route path="/stories" element={<Stories />} />
+        <Route path="/games" element={<Games />} />
         <Route path="/support" element={<Support />} />
         
         {/* Admin Routes */}

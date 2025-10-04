@@ -8,7 +8,8 @@ import {
   Calendar,
   TrendingUp,
   Play,
-  ChevronRight
+  ChevronRight,
+  Gamepad2
 } from 'lucide-react';
 
 const SensoryFriendlyHome = () => {
@@ -17,31 +18,39 @@ const SensoryFriendlyHome = () => {
 
   const quickActions = [
     {
+      title: 'Jogos',
+      description: 'Aprenda brincando',
+      icon: Gamepad2,
+      gradient: 'from-purple-500 to-pink-500',
+      route: '/games',
+      featured: true,
+    },
+    {
       title: 'Vídeos',
       description: 'Conteúdo educativo',
       icon: Video,
-      gradient: 'from-purple-500 to-pink-500',
+      gradient: 'from-blue-500 to-cyan-500',
       route: '/videos',
     },
     {
       title: 'Histórias',
       description: 'Leia e aprenda',
       icon: BookOpen,
-      gradient: 'from-blue-500 to-cyan-500',
+      gradient: 'from-green-500 to-emerald-500',
       route: '/stories',
     },
     {
       title: 'Comunidade',
       description: 'Conecte-se',
       icon: Users,
-      gradient: 'from-green-500 to-emerald-500',
+      gradient: 'from-orange-500 to-yellow-500',
       route: '/community',
     },
     {
       title: 'Rotinas',
       description: 'Organize seu dia',
       icon: Calendar,
-      gradient: 'from-orange-500 to-yellow-500',
+      gradient: 'from-pink-500 to-rose-500',
       route: '/routines',
     }
   ];
@@ -107,8 +116,34 @@ const SensoryFriendlyHome = () => {
         {/* Quick Actions Grid */}
         <div>
           <h2 className="text-xl font-bold text-foreground mb-3">Explorar</h2>
+          
+          {/* Featured Game Card - Full Width */}
+          {quickActions.filter(a => a.featured).map((action) => (
+            <Card 
+              key={action.title}
+              className="cursor-pointer hover:scale-[1.02] transition-transform overflow-hidden mb-3"
+              onClick={() => navigate(action.route)}
+            >
+              <div className={`h-40 bg-gradient-to-br ${action.gradient} flex items-center justify-center relative`}>
+                <action.icon className="h-20 w-20 text-white" />
+                <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                  <span className="text-white text-xs font-semibold">DESTAQUE</span>
+                </div>
+              </div>
+              <div className="p-4">
+                <h3 className="font-bold text-foreground text-lg mb-1">
+                  {action.title}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {action.description}
+                </p>
+              </div>
+            </Card>
+          ))}
+          
+          {/* Other Actions - Grid */}
           <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((action) => (
+            {quickActions.filter(a => !a.featured).map((action) => (
               <Card 
                 key={action.title}
                 className="cursor-pointer hover:scale-[1.02] transition-transform overflow-hidden"
