@@ -399,6 +399,8 @@ export type Database = {
       }
       resources: {
         Row: {
+          audio_file_path: string | null
+          audio_url: string | null
           category: string
           content_type: string
           created_at: string
@@ -410,12 +412,15 @@ export type Database = {
           is_premium: boolean | null
           is_published: boolean | null
           likes_count: number | null
+          pdf_file_path: string | null
           thumbnail_url: string | null
           title: string
           updated_at: string
           url: string | null
         }
         Insert: {
+          audio_file_path?: string | null
+          audio_url?: string | null
           category: string
           content_type: string
           created_at?: string
@@ -427,12 +432,15 @@ export type Database = {
           is_premium?: boolean | null
           is_published?: boolean | null
           likes_count?: number | null
+          pdf_file_path?: string | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
           url?: string | null
         }
         Update: {
+          audio_file_path?: string | null
+          audio_url?: string | null
           category?: string
           content_type?: string
           created_at?: string
@@ -444,6 +452,7 @@ export type Database = {
           is_premium?: boolean | null
           is_published?: boolean | null
           likes_count?: number | null
+          pdf_file_path?: string | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string

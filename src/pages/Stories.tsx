@@ -3,17 +3,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, BookOpen, Heart, Download, ArrowLeft, Eye } from 'lucide-react';
+import { Search, BookOpen, Heart, Download, ArrowLeft, Eye, FileText, Music } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import StoryViewer from '@/components/StoryViewer';
 
 interface StoryResource {
   id: string;
   title: string;
   description: string;
-  url: string;
-  thumbnail_url: string;
+  url: string | null;
+  thumbnail_url: string | null;
+  pdf_file_path: string | null;
+  audio_url: string | null;
+  audio_file_path: string | null;
   category: string;
   likes_count: number;
   downloads_count: number;
@@ -25,6 +29,8 @@ const Stories = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [selectedStory, setSelectedStory] = useState<StoryResource | null>(null);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -64,13 +70,9 @@ const Stories = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleStoryClick = (url: string) => {
-    if (url.startsWith('http')) {
-      window.open(url, '_blank');
-    } else {
-      // Handle local files or other URLs
-      window.open(url, '_blank');
-    }
+  const handleStoryClick = (story: StoryResource) => {
+    setSelectedStory(story);
+    setIsViewerOpen(true);
   };
 
   if (loading) {
@@ -87,6 +89,17 @@ const Stories = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
       <div className="max-w-7xl mx-auto">
+        {/* Story Viewer Modal */}
+        {selectedStory && (
+          <StoryViewer
+            isOpen={isViewerOpen}
+            onClose={() => {
+              setIsViewerOpen(false);
+              setSelectedStory(null);
+            }}
+            story={selectedStory}
+          />
+        )}
         <div className="flex items-center mb-6">
           <Button
             variant="ghost"
@@ -146,7 +159,7 @@ const Stories = () => {
                   <Button
                     size="icon"
                     className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    onClick={() => handleStoryClick(story.url)}
+                    onClick={() => handleStoryClick(story)}
                   >
                     <Eye className="h-6 w-6" />
                   </Button>
@@ -154,6 +167,18 @@ const Stories = () => {
                 <Badge className="absolute top-2 left-2 bg-primary/90">
                   {story.category}
                 </Badge>
+                <div className="absolute top-2 right-2 flex gap-1">
+                  {story.pdf_file_path && (
+                    <Badge variant="secondary" className="bg-white/90">
+                      <FileText className="h-3 w-3" />
+                    </Badge>
+                  )}
+                  {(story.audio_url || story.audio_file_path) && (
+                    <Badge variant="secondary" className="bg-white/90">
+                      <Music className="h-3 w-3" />
+                    </Badge>
+                  )}
+                </div>
               </div>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm line-clamp-2">{story.title}</CardTitle>

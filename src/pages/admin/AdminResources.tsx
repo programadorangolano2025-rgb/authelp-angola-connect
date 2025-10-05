@@ -25,6 +25,9 @@ interface Resource {
   url: string | null;
   file_path: string | null;
   thumbnail_url: string | null;
+  audio_url: string | null;
+  audio_file_path: string | null;
+  pdf_file_path: string | null;
   is_published: boolean;
   is_premium: boolean;
   downloads_count: number;
@@ -54,6 +57,9 @@ const AdminResourcesEnhanced = () => {
     url: '',
     file_path: '',
     thumbnail_url: '',
+    audio_url: '',
+    audio_file_path: '',
+    pdf_file_path: '',
     is_premium: false,
     tags: [] as string[],
     duration: '',
@@ -62,8 +68,14 @@ const AdminResourcesEnhanced = () => {
   });
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCover, setSelectedCover] = useState<File | null>(null);
+  const [selectedPDF, setSelectedPDF] = useState<File | null>(null);
+  const [selectedAudio, setSelectedAudio] = useState<File | null>(null);
   const [previewMode, setPreviewMode] = useState<'grid' | 'list'>('grid');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [coverUploadProgress, setCoverUploadProgress] = useState(0);
+  const [pdfUploadProgress, setPdfUploadProgress] = useState(0);
+  const [audioUploadProgress, setAudioUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [tagInput, setTagInput] = useState('');
 
@@ -186,6 +198,9 @@ const AdminResourcesEnhanced = () => {
           url: newResource.url || null,
           file_path: newResource.file_path || null,
           thumbnail_url: finalThumbnailUrl || null,
+          audio_url: newResource.audio_url || null,
+          audio_file_path: newResource.audio_file_path || null,
+          pdf_file_path: newResource.pdf_file_path || null,
           is_published: false, // Start as draft
           is_premium: newResource.is_premium,
           created_by: user.id // Set to current authenticated user
@@ -222,6 +237,9 @@ const AdminResourcesEnhanced = () => {
       url: '',
       file_path: '',
       thumbnail_url: '',
+      audio_url: '',
+      audio_file_path: '',
+      pdf_file_path: '',
       is_premium: false,
       tags: [],
       duration: '',
@@ -229,8 +247,14 @@ const AdminResourcesEnhanced = () => {
       difficulty_level: 'beginner'
     });
     setSelectedFile(null);
+    setSelectedCover(null);
+    setSelectedPDF(null);
+    setSelectedAudio(null);
     setTagInput('');
     setUploadProgress(0);
+    setCoverUploadProgress(0);
+    setPdfUploadProgress(0);
+    setAudioUploadProgress(0);
   };
 
   const handleEditResource = (resource: Resource) => {
@@ -243,6 +267,9 @@ const AdminResourcesEnhanced = () => {
       url: resource.url || '',
       file_path: resource.file_path || '',
       thumbnail_url: resource.thumbnail_url || '',
+      audio_url: resource.audio_url || '',
+      audio_file_path: resource.audio_file_path || '',
+      pdf_file_path: resource.pdf_file_path || '',
       is_premium: resource.is_premium,
       tags: [],
       duration: '',
@@ -273,6 +300,9 @@ const AdminResourcesEnhanced = () => {
           url: newResource.url || null,
           file_path: newResource.file_path || null,
           thumbnail_url: newResource.thumbnail_url || null,
+          audio_url: newResource.audio_url || null,
+          audio_file_path: newResource.audio_file_path || null,
+          pdf_file_path: newResource.pdf_file_path || null,
           is_premium: newResource.is_premium,
         })
         .eq('id', editingResource.id);
@@ -536,60 +566,128 @@ const AdminResourcesEnhanced = () => {
                 </div>
               </TabsContent>
               
-              <TabsContent value="content" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="url">URL do Recurso (YouTube, etc.)</Label>
-                    <Input
-                      id="url"
-                      value={newResource.url}
-                      onChange={(e) => setNewResource({...newResource, url: e.target.value})}
-                      placeholder="https://www.youtube.com/watch?v=... (opcional)"
-                    />
-                  </div>
-                  
-                   <div>
-                     <Label>OU Upload de Arquivo Local</Label>
-                     <FileUploader
-                       onFileSelect={(file) => {
-                         setSelectedFile(file);
-                         setIsUploading(true);
-                       }}
-                       onFileRemove={() => setSelectedFile(null)}
-                       onUploadComplete={(filePath) => {
-                         setNewResource(prev => ({ ...prev, file_path: filePath }));
-                         setIsUploading(false);
-                         setUploadProgress(100);
-                       }}
-                       selectedFile={selectedFile}
-                       uploadProgress={uploadProgress}
-                       isUploading={isUploading}
-                       userId={currentUser?.id}
-                     />
-                   </div>
-                 </div>
-                
-                <div>
-                  <Label htmlFor="thumbnail">URL da Thumbnail (opcional)</Label>
-                  <Input
-                    id="thumbnail"
-                    value={newResource.thumbnail_url}
-                    onChange={(e) => setNewResource({...newResource, thumbnail_url: e.target.value})}
-                    placeholder="https://..."
-                  />
-                </div>
-                
-                {newResource.content_type === 'video' && (
-                  <div>
-                    <Label htmlFor="duration">Duração (minutos)</Label>
-                    <Input
-                      id="duration"
-                      value={newResource.duration}
-                      onChange={(e) => setNewResource({...newResource, duration: e.target.value})}
-                      placeholder="Ex: 10"
-                      type="number"
-                    />
-                  </div>
+              <TabsContent value="content" className="space-y-6">
+                {/* Story-specific uploads */}
+                {newResource.content_type === 'story' && (
+                  <>
+                    <div className="bg-muted/50 p-4 rounded-lg space-y-4">
+                      <h3 className="font-semibold text-sm">Uploads para Histórias</h3>
+                      
+                      {/* Cover Image Upload */}
+                      <div>
+                        <Label>Capa da História (Thumbnail)</Label>
+                        <FileUploader
+                          onFileSelect={(file) => setSelectedCover(file)}
+                          onFileRemove={() => setSelectedCover(null)}
+                          onUploadComplete={(filePath) => {
+                            setNewResource(prev => ({ ...prev, thumbnail_url: filePath }));
+                            setCoverUploadProgress(100);
+                          }}
+                          selectedFile={selectedCover}
+                          uploadProgress={coverUploadProgress}
+                          isUploading={false}
+                          userId={currentUser?.id}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Formatos: JPG, PNG, WebP (máx 5MB)</p>
+                      </div>
+
+                      {/* PDF Upload */}
+                      <div>
+                        <Label>PDF da História</Label>
+                        <FileUploader
+                          onFileSelect={(file) => setSelectedPDF(file)}
+                          onFileRemove={() => setSelectedPDF(null)}
+                          onUploadComplete={(filePath) => {
+                            setNewResource(prev => ({ ...prev, pdf_file_path: filePath }));
+                            setPdfUploadProgress(100);
+                          }}
+                          selectedFile={selectedPDF}
+                          uploadProgress={pdfUploadProgress}
+                          isUploading={false}
+                          userId={currentUser?.id}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Formato: PDF (máx 20MB)</p>
+                      </div>
+
+                      {/* Audio Upload */}
+                      <div>
+                        <Label>Música de Fundo (opcional)</Label>
+                        <FileUploader
+                          onFileSelect={(file) => setSelectedAudio(file)}
+                          onFileRemove={() => setSelectedAudio(null)}
+                          onUploadComplete={(filePath) => {
+                            setNewResource(prev => ({ ...prev, audio_file_path: filePath }));
+                            setAudioUploadProgress(100);
+                          }}
+                          selectedFile={selectedAudio}
+                          uploadProgress={audioUploadProgress}
+                          isUploading={false}
+                          userId={currentUser?.id}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Formatos: MP3, WAV, M4A (máx 10MB)</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* General content uploads for other types */}
+                {newResource.content_type !== 'story' && (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="url">URL do Recurso (YouTube, etc.)</Label>
+                        <Input
+                          id="url"
+                          value={newResource.url}
+                          onChange={(e) => setNewResource({...newResource, url: e.target.value})}
+                          placeholder="https://www.youtube.com/watch?v=... (opcional)"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>OU Upload de Arquivo Local</Label>
+                        <FileUploader
+                          onFileSelect={(file) => {
+                            setSelectedFile(file);
+                            setIsUploading(true);
+                          }}
+                          onFileRemove={() => setSelectedFile(null)}
+                          onUploadComplete={(filePath) => {
+                            setNewResource(prev => ({ ...prev, file_path: filePath }));
+                            setIsUploading(false);
+                            setUploadProgress(100);
+                          }}
+                          selectedFile={selectedFile}
+                          uploadProgress={uploadProgress}
+                          isUploading={isUploading}
+                          userId={currentUser?.id}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="thumbnail">URL da Thumbnail (opcional)</Label>
+                      <Input
+                        id="thumbnail"
+                        value={newResource.thumbnail_url}
+                        onChange={(e) => setNewResource({...newResource, thumbnail_url: e.target.value})}
+                        placeholder="https://..."
+                      />
+                    </div>
+                    
+                    {newResource.content_type === 'video' && (
+                      <div>
+                        <Label htmlFor="duration">Duração (minutos)</Label>
+                        <Input
+                          id="duration"
+                          value={newResource.duration}
+                          onChange={(e) => setNewResource({...newResource, duration: e.target.value})}
+                          placeholder="Ex: 10"
+                          type="number"
+                        />
+                      </div>
+                    )}
+                  </>
                 )}
               </TabsContent>
               
