@@ -1,8 +1,8 @@
+import React, { useEffect } from 'react';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { InstallPrompt } from './InstallPrompt';
 import { UpdatePrompt } from './UpdatePrompt';
 import { OfflineIndicator } from './OfflineIndicator';
-import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 interface PWAWrapperProps {
