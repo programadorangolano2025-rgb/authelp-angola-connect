@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedAdminRouteProps {
   children: React.ReactNode;
@@ -8,8 +9,9 @@ interface ProtectedAdminRouteProps {
 
 export const ProtectedAdminRoute: React.FC<ProtectedAdminRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAdmin();
+  const { user, loading: authLoading } = useAuth();
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center space-x-2">
@@ -20,8 +22,8 @@ export const ProtectedAdminRoute: React.FC<ProtectedAdminRouteProps> = ({ childr
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/admin-login" replace />;
+  if (!isAuthenticated || !user) {
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;

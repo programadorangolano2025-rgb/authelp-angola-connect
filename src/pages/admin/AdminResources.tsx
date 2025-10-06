@@ -662,7 +662,8 @@ const AdminResourcesEnhanced = () => {
                           }}
                           onFileRemove={() => setSelectedFile(null)}
                           onUploadComplete={(filePath) => {
-                            setNewResource(prev => ({ ...prev, file_path: filePath }));
+                            const { data } = supabase.storage.from('resources').getPublicUrl(filePath);
+                            setNewResource(prev => ({ ...prev, file_path: data.publicUrl }));
                             setIsUploading(false);
                             setUploadProgress(100);
                           }}

@@ -13,12 +13,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
+import { useAdmin } from '@/contexts/AdminContext';
+import { useAuth } from '@/hooks/useAuth';
 
 export const AdminHeader = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logout } = useAdmin();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (e) {}
+    logout();
     toast({
       title: "Saindo do painel",
       description: "Redirecionando para a página inicial"
