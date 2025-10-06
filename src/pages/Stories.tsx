@@ -148,7 +148,11 @@ const Stories = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredStories.map((story) => (
-            <Card key={story.id} className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
+            <Card 
+              key={story.id} 
+              className="group hover:shadow-lg transition-all duration-300 cursor-pointer"
+              onClick={() => handleStoryClick(story)}
+            >
               <div className="relative overflow-hidden rounded-t-lg">
                 <img
                   src={story.thumbnail_url || '/placeholder.svg'}
@@ -156,13 +160,9 @@ const Stories = () => {
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
-                  <Button
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    onClick={() => handleStoryClick(story)}
-                  >
-                    <Eye className="h-6 w-6" />
-                  </Button>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-primary/90 rounded-full p-3">
+                    <Eye className="h-6 w-6 text-primary-foreground" />
+                  </div>
                 </div>
                 <Badge className="absolute top-2 left-2 bg-primary/90">
                   {story.category}

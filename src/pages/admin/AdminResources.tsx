@@ -577,10 +577,13 @@ const AdminResourcesEnhanced = () => {
                       <div>
                         <Label>Capa da História (Thumbnail)</Label>
                         <FileUploader
+                          accept=".jpg,.jpeg,.png,.webp"
+                          maxSize={5}
                           onFileSelect={(file) => setSelectedCover(file)}
                           onFileRemove={() => setSelectedCover(null)}
                           onUploadComplete={(filePath) => {
-                            setNewResource(prev => ({ ...prev, thumbnail_url: filePath }));
+                            const { data } = supabase.storage.from('resources').getPublicUrl(filePath);
+                            setNewResource(prev => ({ ...prev, thumbnail_url: data.publicUrl }));
                             setCoverUploadProgress(100);
                           }}
                           selectedFile={selectedCover}
@@ -595,10 +598,13 @@ const AdminResourcesEnhanced = () => {
                       <div>
                         <Label>PDF da História</Label>
                         <FileUploader
+                          accept=".pdf"
+                          maxSize={20}
                           onFileSelect={(file) => setSelectedPDF(file)}
                           onFileRemove={() => setSelectedPDF(null)}
                           onUploadComplete={(filePath) => {
-                            setNewResource(prev => ({ ...prev, pdf_file_path: filePath }));
+                            const { data } = supabase.storage.from('resources').getPublicUrl(filePath);
+                            setNewResource(prev => ({ ...prev, pdf_file_path: data.publicUrl }));
                             setPdfUploadProgress(100);
                           }}
                           selectedFile={selectedPDF}
@@ -613,10 +619,13 @@ const AdminResourcesEnhanced = () => {
                       <div>
                         <Label>Música de Fundo (opcional)</Label>
                         <FileUploader
+                          accept=".mp3,.wav,.m4a"
+                          maxSize={10}
                           onFileSelect={(file) => setSelectedAudio(file)}
                           onFileRemove={() => setSelectedAudio(null)}
                           onUploadComplete={(filePath) => {
-                            setNewResource(prev => ({ ...prev, audio_file_path: filePath }));
+                            const { data } = supabase.storage.from('resources').getPublicUrl(filePath);
+                            setNewResource(prev => ({ ...prev, audio_file_path: data.publicUrl }));
                             setAudioUploadProgress(100);
                           }}
                           selectedFile={selectedAudio}
