@@ -201,7 +201,7 @@ const AdminResourcesEnhanced = () => {
           audio_url: newResource.audio_url || null,
           audio_file_path: newResource.audio_file_path || null,
           pdf_file_path: newResource.pdf_file_path || null,
-          is_published: false, // Start as draft
+          is_published: true, // Publish immediately for admins
           is_premium: newResource.is_premium,
           created_by: user.id // Set to current authenticated user
         })
