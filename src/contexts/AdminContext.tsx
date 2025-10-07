@@ -1,132 +1,48 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AdminContextType {
-  isAuthenticated: boolean;
-  sessionId: string | null;
+  isAdmin: boolean;
   loading: boolean;
-  login: () => Promise<{ success: boolean; error?: string }>;
+  checkAdminStatus: (userId: string) => Promise<boolean>;
   logout: () => void;
   logAction: (action: string, details?: any, affectedTable?: string, affectedRecordId?: string) => Promise<void>;
 }
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-const ADMIN_SESSION_KEY = 'admin_session';
-
 export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    checkExistingSession();
-  }, []);
-
-  const checkExistingSession = async () => {
+  const checkAdminStatus = async (userId: string): Promise<boolean> => {
     try {
-      const storedSession = localStorage.getItem(ADMIN_SESSION_KEY);
-      if (!storedSession) {
-        setLoading(false);
-        return;
-      }
-
-      const session = JSON.parse(storedSession);
-      const now = new Date();
-      const expiresAt = new Date(session.expiresAt);
-
-      if (now >= expiresAt) {
-        localStorage.removeItem(ADMIN_SESSION_KEY);
-        setLoading(false);
-        return;
-      }
-
-      // Verify session in database
+      setLoading(true);
       const { data, error } = await supabase
-        .from('admin_sessions')
-        .select('id')
-        .eq('session_token', session.token)
-        .gte('expires_at', new Date().toISOString())
-        .single();
+        .rpc('has_role', { 
+          _user_id: userId, 
+          _role: 'admin' 
+        });
 
-      if (error || !data) {
-        localStorage.removeItem(ADMIN_SESSION_KEY);
-        setLoading(false);
-        return;
+      if (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+        return false;
       }
 
-      setIsAuthenticated(true);
-      setSessionId(session.id);
+      setIsAdmin(!!data);
+      return !!data;
     } catch (error) {
-      console.error('Error checking admin session:', error);
-      localStorage.removeItem(ADMIN_SESSION_KEY);
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (): Promise<{ success: boolean; error?: string }> => {
-    try {
-      // Create admin session automatically (no PIN required)
-      const sessionToken = crypto.randomUUID();
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24);
-
-      const { data: session, error: sessionError } = await supabase
-        .from('admin_sessions')
-        .insert({
-          session_token: sessionToken,
-          expires_at: expiresAt.toISOString(),
-          ip_address: 'unknown',
-          user_agent: navigator.userAgent
-        })
-        .select()
-        .single();
-
-      if (sessionError || !session) {
-        return { success: false, error: 'Erro ao criar sessão' };
-      }
-
-      // Store session locally
-      const sessionData = {
-        id: session.id,
-        token: sessionToken,
-        expiresAt: expiresAt.toISOString()
-      };
-
-      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionData));
-      setIsAuthenticated(true);
-      setSessionId(session.id);
-
-      // Log login action
-      await logAction('admin_login', { timestamp: new Date().toISOString() });
-
-      return { success: true };
-    } catch (error) {
-      console.error('Admin login error:', error);
-      return { success: false, error: 'Erro interno do servidor' };
-    }
-  };
-
-  const logout = async () => {
-    try {
-      if (sessionId) {
-        // Log logout action
-        await logAction('admin_logout', { timestamp: new Date().toISOString() });
-
-        // Delete session from database
-        await supabase
-          .from('admin_sessions')
-          .delete()
-          .eq('id', sessionId);
-      }
-    } catch (error) {
-      console.error('Error during logout:', error);
-    } finally {
-      localStorage.removeItem(ADMIN_SESSION_KEY);
-      setIsAuthenticated(false);
-      setSessionId(null);
-    }
+  const logout = () => {
+    setIsAdmin(false);
   };
 
   const logAction = async (
@@ -135,15 +51,13 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     affectedTable?: string,
     affectedRecordId?: string
   ) => {
-    if (!sessionId) return;
-
     try {
       await supabase
         .from('admin_logs')
         .insert({
           action,
           details: details || {},
-          session_id: sessionId,
+          session_id: null,
           ip_address: 'unknown',
           affected_table: affectedTable,
           affected_record_id: affectedRecordId
@@ -155,10 +69,9 @@ export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <AdminContext.Provider value={{
-      isAuthenticated,
-      sessionId,
+      isAdmin,
       loading,
-      login,
+      checkAdminStatus,
       logout,
       logAction
     }}>

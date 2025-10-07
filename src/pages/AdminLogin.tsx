@@ -1,49 +1,91 @@
-import { useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Shield, Loader2 } from 'lucide-react';
-import { useAdmin } from '@/contexts/AdminContext';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email({ message: "Email inválido" }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres" })
+});
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAdmin();
   const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/admin');
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate inputs
+    const validation = loginSchema.safeParse({ email, password });
+    if (!validation.success) {
+      toast({
+        title: "Erro de validação",
+        description: validation.error.errors[0].message,
+        variant: "destructive"
+      });
       return;
     }
 
-    const autoLogin = async () => {
-      try {
-        const result = await login();
-        
-        if (result.success) {
-          toast({
-            title: "Acesso liberado",
-            description: "Bem-vindo ao painel administrativo"
-          });
-          navigate('/admin');
-        } else {
-          toast({
-            title: "Erro",
-            description: result.error || "Erro ao acessar painel",
-            variant: "destructive"
-          });
-        }
-      } catch (error) {
+    setLoading(true);
+
+    try {
+      // Sign in with Supabase
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (authError) throw authError;
+
+      if (!authData.user) {
+        throw new Error("Falha na autenticação");
+      }
+
+      // Check if user has admin role
+      const { data: hasAdminRole, error: roleError } = await supabase
+        .rpc('has_role', { 
+          _user_id: authData.user.id, 
+          _role: 'admin' 
+        });
+
+      if (roleError) throw roleError;
+
+      if (!hasAdminRole) {
+        await supabase.auth.signOut();
         toast({
-          title: "Erro",
-          description: "Erro interno do servidor",
+          title: "Acesso negado",
+          description: "Você não tem permissão de administrador",
           variant: "destructive"
         });
+        setLoading(false);
+        return;
       }
-    };
 
-    autoLogin();
-  }, [login, navigate, toast, isAuthenticated]);
+      toast({
+        title: "Acesso liberado",
+        description: "Bem-vindo ao painel administrativo"
+      });
+      
+      navigate('/PFLGMANEGER');
+    } catch (error: any) {
+      toast({
+        title: "Erro no login",
+        description: error.message || "Credenciais inválidas",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
@@ -56,16 +98,46 @@ const AdminLogin = () => {
           </div>
           <CardTitle className="text-2xl font-bold">Painel Administrativo</CardTitle>
           <CardDescription>
-            Redirecionando para o painel de administração...
+            Entre com suas credenciais de administrador
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center space-x-2">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <span>Carregando...</span>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                required
+              />
             </div>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Entrando...
+                </>
+              ) : (
+                'Entrar'
+              )}
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>

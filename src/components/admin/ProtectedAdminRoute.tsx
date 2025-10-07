@@ -2,16 +2,33 @@ import { Navigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useEffect, useState } from 'react';
 
 interface ProtectedAdminRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedAdminRoute: React.FC<ProtectedAdminRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading } = useAdmin();
+  const { checkAdminStatus, loading: adminLoading } = useAdmin();
   const { user, loading: authLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [checked, setChecked] = useState(false);
 
-  if (loading || authLoading) {
+  useEffect(() => {
+    const verifyAdmin = async () => {
+      if (user) {
+        const hasAdminRole = await checkAdminStatus(user.id);
+        setIsAdmin(hasAdminRole);
+      }
+      setChecked(true);
+    };
+
+    if (!authLoading) {
+      verifyAdmin();
+    }
+  }, [user, authLoading, checkAdminStatus]);
+
+  if (authLoading || adminLoading || !checked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center space-x-2">
@@ -22,8 +39,8 @@ export const ProtectedAdminRoute: React.FC<ProtectedAdminRouteProps> = ({ childr
     );
   }
 
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/login" replace />;
+  if (!user || !isAdmin) {
+    return <Navigate to="/PFLGMANEGER/login" replace />;
   }
 
   return <>{children}</>;

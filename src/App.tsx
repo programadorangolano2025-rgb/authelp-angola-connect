@@ -32,6 +32,7 @@ import Videos from "./pages/Videos";
 import Stories from "./pages/Stories";
 import Games from "./pages/Games";
 import { ProtectedAdminRoute } from "./components/admin/ProtectedAdminRoute";
+import AdminLogin from "./pages/AdminLogin";
 
 const AppContent = () => {
   const location = useLocation();
@@ -57,6 +58,7 @@ const AppContent = () => {
         <Route path="/support" element={<Support />} />
         
         {/* Admin Routes */}
+        <Route path="/PFLGMANEGER/login" element={<AdminLogin />} />
         <Route path="/PFLGMANEGER" element={<ProtectedAdminRoute><AdminLayout /></ProtectedAdminRoute>}>
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUsers />} />
