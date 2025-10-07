@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { AdminProvider } from "@/contexts/AdminContext";
 import { BottomNav } from "./components/BottomNav";
 import Welcome from "./pages/Welcome";
 import Register from "./pages/Register";
@@ -83,9 +84,11 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
+          <AdminProvider>
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </AdminProvider>
         </TooltipProvider>
       </SettingsProvider>
     </AuthProvider>
