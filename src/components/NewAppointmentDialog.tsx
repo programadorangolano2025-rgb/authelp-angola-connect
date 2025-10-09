@@ -21,18 +21,19 @@ interface NewAppointmentDialogProps {
 
 export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialogProps) => {
   const { toast } = useToast()
-  const { services, createAppointment, getAvailableTimeSlots } = useAppointments()
-  
+  const { professionals, createAppointment, getAvailableTimeSlots } = useAppointments()
+
   const [selectedDate, setSelectedDate] = useState<Date>()
-  const [selectedService, setSelectedService] = useState('')
+  const [selectedProfessional, setSelectedProfessional] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [serviceCategory, setServiceCategory] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!selectedDate || !selectedService || !selectedTime) {
+
+    if (!selectedDate || !selectedProfessional || !selectedTime) {
       toast({
         title: "Campos obrigatórios",
         description: "Por favor, preencha todos os campos obrigatórios.",
@@ -42,10 +43,10 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
     }
 
     setSubmitting(true)
-    
+
     try {
       const success = await createAppointment({
-        service_id: selectedService,
+        service_id: selectedProfessional,
         appointment_date: format(selectedDate, 'yyyy-MM-dd'),
         notes: notes.trim() || undefined
       })
@@ -55,10 +56,10 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
           title: "Sucesso!",
           description: "Consulta agendada com sucesso."
         })
-        
-        // Reset form
+
         setSelectedDate(undefined)
-        setSelectedService('')
+        setSelectedProfessional('')
+        setServiceCategory('')
         setSelectedTime('')
         setNotes('')
         onOpenChange(false)
@@ -76,11 +77,27 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
     }
   }
 
-  const availableTimeSlots = selectedDate 
+  const availableTimeSlots = selectedDate
     ? getAvailableTimeSlots(format(selectedDate, 'yyyy-MM-dd'))
     : []
 
-  const selectedServiceData = services.find(s => s.id === selectedService)
+  const selectedProfessionalData = professionals.find(p => p.id === selectedProfessional)
+
+  const filteredProfessionals = serviceCategory
+    ? professionals.filter(p => {
+        const specs = p.specializations || []
+        return specs.some(s => s.toLowerCase().includes(serviceCategory.toLowerCase()))
+      })
+    : professionals
+
+  const categories = [
+    { id: '', label: 'Todos' },
+    { id: 'psicologia', label: 'Psicologia' },
+    { id: 'terapia', label: 'Terapia Ocupacional' },
+    { id: 'fonoaudiologia', label: 'Fonoaudiologia' },
+    { id: 'fisioterapia', label: 'Fisioterapia' },
+    { id: 'neurologia', label: 'Neurologia' }
+  ]
 
   // Disable past dates
   const isDateDisabled = (date: Date) => {
@@ -97,22 +114,40 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Service Selection */}
+          {/* Category Filter */}
           <div className="space-y-2">
-            <Label>Tipo de Serviço *</Label>
-            <Select value={selectedService} onValueChange={setSelectedService}>
+            <Label>Especialidade</Label>
+            <Select value={serviceCategory} onValueChange={setServiceCategory}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione um serviço" />
+                <SelectValue placeholder="Filtrar por especialidade" />
               </SelectTrigger>
               <SelectContent>
-                {services.map((service) => (
-                  <SelectItem key={service.id} value={service.id}>
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Professional Selection */}
+          <div className="space-y-2">
+            <Label>Profissional *</Label>
+            <Select value={selectedProfessional} onValueChange={setSelectedProfessional}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um profissional" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredProfessionals.map((professional) => (
+                  <SelectItem key={professional.id} value={professional.id}>
                     <div className="flex items-center space-x-2">
-                      <Stethoscope className="h-4 w-4" />
+                      <User className="h-4 w-4" />
                       <div>
-                        <div className="font-medium">{service.name}</div>
+                        <div className="font-medium">{professional.full_name}</div>
                         <div className="text-sm text-muted-foreground">
-                          {service.category}
+                          {professional.license_type || professional.specialization || 'Profissional'}
+                          {professional.verified && ' ✓'}
                         </div>
                       </div>
                     </div>
@@ -120,9 +155,22 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
                 ))}
               </SelectContent>
             </Select>
-            {selectedServiceData && (
-              <p className="text-sm text-muted-foreground">
-                {selectedServiceData.description}
+            {selectedProfessionalData && (
+              <div className="text-sm text-muted-foreground space-y-1">
+                {selectedProfessionalData.bio && <p>{selectedProfessionalData.bio}</p>}
+                {selectedProfessionalData.location && (
+                  <p className="flex items-center gap-1">
+                    📍 {selectedProfessionalData.location}
+                  </p>
+                )}
+                {selectedProfessionalData.specializations && selectedProfessionalData.specializations.length > 0 && (
+                  <p>Especializações: {selectedProfessionalData.specializations.join(', ')}</p>
+                )}
+              </div>
+            )}
+            {filteredProfessionals.length === 0 && (
+              <p className="text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg">
+                Nenhum profissional encontrado para esta especialidade.
               </p>
             )}
           </div>
@@ -203,14 +251,19 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
           </div>
 
           {/* Summary */}
-          {selectedServiceData && selectedDate && selectedTime && (
+          {selectedProfessionalData && selectedDate && selectedTime && (
             <div className="bg-muted/30 rounded-lg p-4 space-y-2">
               <h4 className="font-medium text-text-gentle">Resumo do Agendamento:</h4>
               <div className="space-y-1 text-sm">
-                <p><span className="text-muted-foreground">Serviço:</span> {selectedServiceData.name}</p>
+                <p><span className="text-muted-foreground">Profissional:</span> {selectedProfessionalData.full_name}</p>
                 <p><span className="text-muted-foreground">Data:</span> {format(selectedDate, "PPP", { locale: ptBR })}</p>
                 <p><span className="text-muted-foreground">Horário:</span> {selectedTime}</p>
-                <p><span className="text-muted-foreground">Categoria:</span> {selectedServiceData.category}</p>
+                {selectedProfessionalData.license_type && (
+                  <p><span className="text-muted-foreground">Tipo:</span> {selectedProfessionalData.license_type}</p>
+                )}
+                {selectedProfessionalData.location && (
+                  <p><span className="text-muted-foreground">Localização:</span> {selectedProfessionalData.location}</p>
+                )}
               </div>
             </div>
           )}
@@ -227,7 +280,7 @@ export const NewAppointmentDialog = ({ open, onOpenChange }: NewAppointmentDialo
             <Button
               type="submit"
               variant="calm"
-              disabled={submitting || !selectedDate || !selectedService || !selectedTime}
+              disabled={submitting || !selectedDate || !selectedProfessional || !selectedTime}
               className="flex-1"
             >
               {submitting ? 'Agendando...' : 'Confirmar Agendamento'}

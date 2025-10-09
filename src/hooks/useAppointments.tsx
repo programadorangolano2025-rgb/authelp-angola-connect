@@ -20,10 +20,18 @@ interface Service {
 interface Professional {
   id: string
   full_name: string
-  user_type: string
+  user_type?: string
   bio?: string
   phone?: string
   location?: string
+  specialization?: string
+  specializations?: string[]
+  professional_license?: string
+  license_type?: string
+  email?: string
+  verified: boolean
+  is_admin_created: boolean
+  professional_status?: string
 }
 
 interface Appointment {
@@ -104,14 +112,37 @@ export const useAppointments = () => {
 
   const loadProfessionals = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_type', 'professional')
-        .order('full_name')
+      const [userProfsResponse, adminProfsResponse] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_type', 'professional')
+          .eq('professional_status', 'verified')
+          .order('full_name'),
+        supabase
+          .from('admin_created_professionals')
+          .select('*')
+          .eq('is_active', true)
+          .order('full_name')
+      ])
 
-      if (error) throw error
-      setProfessionals(data || [])
+      if (userProfsResponse.error) throw userProfsResponse.error
+      if (adminProfsResponse.error) throw adminProfsResponse.error
+
+      const userProfessionals = (userProfsResponse.data || []).map(prof => ({
+        ...prof,
+        verified: prof.professional_status === 'verified',
+        is_admin_created: false
+      }))
+
+      const adminProfessionals = (adminProfsResponse.data || []).map(prof => ({
+        ...prof,
+        verified: prof.verified || true,
+        is_admin_created: true
+      }))
+
+      const allProfessionals = [...userProfessionals, ...adminProfessionals]
+      setProfessionals(allProfessionals)
       return true
     } catch (error) {
       console.error('Error loading professionals:', error)
