@@ -42,7 +42,7 @@ serve(async (req) => {
     );
 
     const adminEmail = 'admin@gmail.com';
-    const adminPassword = 'admin';
+    const adminPassword = 'admin123';
 
     // Verificar se o usuário admin já existe
     console.log('🔍 Checking if admin user exists...');
