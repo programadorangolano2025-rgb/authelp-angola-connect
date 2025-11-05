@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface AdminContextType {
@@ -11,7 +11,7 @@ interface AdminContextType {
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-export const AdminProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(false);
 

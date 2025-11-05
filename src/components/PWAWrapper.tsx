@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useServiceWorker } from '@/hooks/useServiceWorker';
 import { InstallPrompt } from './InstallPrompt';
 import { UpdatePrompt } from './UpdatePrompt';
@@ -6,7 +6,7 @@ import { OfflineIndicator } from './OfflineIndicator';
 import { toast } from 'sonner';
 
 interface PWAWrapperProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const PWAWrapper = ({ children }: PWAWrapperProps) => {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -64,7 +64,7 @@ export const useSettings = () => {
   return context;
 };
 
-export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [isListening, setIsListening] = useState(false);
