@@ -8,7 +8,7 @@ interface ProtectedAdminRouteProps {
   children: React.ReactNode;
 }
 
-export const ProtectedAdminRoute: React.FC<ProtectedAdminRouteProps> = ({ children }) => {
+export const ProtectedAdminRoute = ({ children }: ProtectedAdminRouteProps) => {
   const { checkAdminStatus, loading: adminLoading } = useAdmin();
   const { user, loading: authLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
